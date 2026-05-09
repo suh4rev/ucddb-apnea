@@ -1,0 +1,10 @@
+numpy
+pandas>=2.2,<3
+scipy
+scikit-learn
+matplotlib
+wfdb
+pyedflib
+tqdm
+requests
+xlrd

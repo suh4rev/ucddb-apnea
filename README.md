@@ -1,0 +1,102 @@
+# UCDDB Apnea Classification
+
+Minimal Python project for a master's thesis on binary apnea/hypopnea classification using the UCDDB dataset.
+
+At this stage, the project only implements the first step: raw data audit.
+
+## Project Structure
+
+```text
+ucddb-apnea/
++-- data/
+|   +-- raw/
+|   +-- processed/
++-- scripts/
+|   +-- 00_download_ucddb.py
+|   +-- 01_data_audit.py
+|   +-- 02_build_epochs.py
+|   +-- 03_extract_features.py
+|   +-- 04_train_models.py
+|   +-- 05_analyze_results.py
++-- reports/
+|   +-- figures/
+|   +-- tables/
++-- config.py
++-- README.md
++-- requirements.txt
++-- .gitignore
+```
+
+## Data
+
+Place the downloaded UCDDB files into:
+
+```text
+data/raw/
+```
+
+For the PhysioNet UCDDB release, the downloader keeps only files needed for this project:
+
+```text
+RECORDS
+SubjectDetails.xls
+SHA256SUMS.txt
+ucddb*.rec
+ucddb*_respevt.txt
+ucddb*_stage.txt
+```
+
+Large `*_lifecard.edf` files are intentionally not downloaded.
+
+Respiratory event annotations are expected in files such as:
+
+```text
+ucddb002_respevt.txt
+```
+
+The `data/raw/` directory is ignored by Git.
+
+## Installation
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+On Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Download UCDDB Files
+
+From the project root:
+
+```bash
+python scripts/00_download_ucddb.py
+```
+
+The script downloads the selected UCDDB files from PhysioNet into `data/raw/`.
+Existing non-empty files are skipped.
+
+## Run Data Audit
+
+From the project root:
+
+```bash
+python scripts/01_data_audit.py
+```
+
+The script scans `data/raw/`, tries to read each UCDDB EDF signal file, prints channel names and sampling frequencies, checks respiratory event annotation files, and saves the audit table to:
+
+```text
+reports/tables/ucddb_audit.csv
+```
