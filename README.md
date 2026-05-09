@@ -16,6 +16,7 @@ ucddb-apnea/
 |   +-- 01_data_audit.py
 |   +-- 02_build_epochs.py
 |   +-- 03_extract_features.py
+|   +-- 03_validate_dataset.py
 |   +-- 04_train_models.py
 |   +-- 05_analyze_results.py
 +-- reports/
@@ -114,4 +115,32 @@ The script converts UCDDB records into 30-second epochs with binary labels:
 
 ```text
 data/processed/epochs.csv
+```
+
+## Extract Features
+
+From the project root:
+
+```bash
+python scripts/03_extract_features.py
+```
+
+The script extracts ECG, Flow, ribcage, abdominal effort, SpO2, and combined effort features for each 30-second epoch. The main output is:
+
+```text
+data/processed/features_all.csv
+```
+
+## Validate Prepared Dataset
+
+Before training models, run:
+
+```bash
+python scripts/03_validate_dataset.py
+```
+
+The script checks table consistency, labels, epoch timing, missing values, feature ranges, and subject-level split readiness. The main report is:
+
+```text
+reports/validation_report.md
 ```

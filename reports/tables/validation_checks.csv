@@ -1,0 +1,37 @@
+check_name,status,details
+file_exists_ucddb_audit,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\reports\tables\ucddb_audit.csv
+file_exists_epochs,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\data\processed\epochs.csv
+file_exists_features_all,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\data\processed\features_all.csv
+file_exists_epochs_summary_overall,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\reports\tables\epochs_summary_overall.csv
+file_exists_epochs_summary_by_record,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\reports\tables\epochs_summary_by_record.csv
+file_exists_feature_extraction_summary,PASS,C:\Users\Hasee\Documents\REPS\Diplom\ucddb-apnea\reports\tables\feature_extraction_summary.csv
+epochs_not_empty,PASS,Rows: 20793
+features_not_empty,PASS,Rows: 20793
+epochs_features_row_count_match,PASS,Both tables have 20793 rows.
+row_count_context,PASS,"Observed 20793 epochs. For the current full UCDDB preparation this is expected to be around 20793, but this is not enforced as a hard validation rule."
+epochs_record_count,PASS,Unique record_id count: 25
+features_record_count,PASS,Unique record_id count: 25
+record_id_sets_match,PASS,record_id sets match between epochs and features.
+epochs_record_epoch_unique,PASS,Duplicate key rows: 0
+features_record_epoch_unique,PASS,Duplicate key rows: 0
+label_values,PASS,"Observed labels: ['apnea_hypopnea', 'normal']"
+label_binary_values,PASS,"Observed label_binary values: [0, 1]"
+label_binary_consistency,PASS,"normal mismatches=0, apnea_hypopnea mismatches=0"
+positive_rate_reasonable,PASS,Positive rate: 0.2002
+epoch_duration_30_seconds,PASS,Invalid duration rows: 0
+epoch_start_non_negative,PASS,Rows with start_sec < 0: 0
+epoch_end_after_start,PASS,Rows with end_sec <= start_sec: 0
+epoch_id_sequential_by_record,PASS,All records have sequential epoch_id from 0.
+feature_group_ecg,PASS,Columns found: 12
+feature_group_flow,PASS,Columns found: 10
+feature_group_ribcage,PASS,Columns found: 9
+feature_group_abdo,PASS,Columns found: 9
+feature_group_effort,PASS,Columns found: 4
+feature_group_spo2,PASS,Columns found: 9
+feature_missingness,PASS,"Features with FAIL=0, WARNING=0"
+feature_infinite_values,PASS,Infinite values in numeric features: 0
+feature_ranges,PASS,"Range checks with FAIL=0, WARNING=0"
+subject_split_positive_records,PASS,Records with positive epochs: 25
+subject_split_normal_records,PASS,Records with normal epochs: 25
+leakage_columns_documented,PASS,Leakage columns are documented in validation_report.md.
+split_recommendation_documented,PASS,Subject-level split recommendation is documented in validation_report.md.

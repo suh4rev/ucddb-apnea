@@ -106,16 +106,21 @@ def choose_signal_file(paths: list[Path]) -> Path | None:
     rec_files = [
         path
         for path in signal_files
-        if path.suffix.lower() == ".rec" and "lifecard" not in path.name.lower()
+        if path.suffix.lower() == ".rec"
+        and path.name.lower().startswith("ucddb")
+        and "lifecard" not in path.name.lower()
     ]
     if rec_files:
         return rec_files[0]
 
-    non_lifecard_files = [
-        path for path in signal_files if "lifecard" not in path.name.lower()
+    non_lifecard_edf_bdf_files = [
+        path
+        for path in signal_files
+        if path.suffix.lower() in {".edf", ".bdf"}
+        and "lifecard" not in path.name.lower()
     ]
-    if non_lifecard_files:
-        return non_lifecard_files[0]
+    if non_lifecard_edf_bdf_files:
+        return non_lifecard_edf_bdf_files[0]
 
     return signal_files[0]
 
