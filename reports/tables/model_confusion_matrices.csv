@@ -1,0 +1,15 @@
+experiment,model,tn,fp,fn,tp
+ecg_only,XGBoost,11757,4874,3006,1156
+effort_only,XGBoost,10346,6285,2113,2049
+flow_only,XGBoost,11062,5569,2196,1966
+full_core_fusion,LogisticRegression,10497,6134,2043,2119
+full_core_fusion,RandomForest,16548,83,4118,44
+full_core_fusion,XGBoost,11978,4653,2433,1729
+full_minus_ecg,XGBoost,11009,5622,2084,2078
+full_minus_effort,XGBoost,11824,4807,2362,1800
+full_minus_flow,XGBoost,12042,4589,2463,1699
+full_minus_spo2,XGBoost,12120,4511,2726,1436
+late_fusion,XGBoost,12536,4095,2503,1659
+respiratory_fusion,XGBoost,11084,5547,2185,1977
+respiratory_spo2_fusion,XGBoost,11009,5622,2084,2078
+spo2_only,XGBoost,11293,5338,2195,1967

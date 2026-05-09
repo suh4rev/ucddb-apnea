@@ -144,3 +144,13 @@ The script checks table consistency, labels, epoch timing, missing values, featu
 ```text
 reports/validation_report.md
 ```
+
+## Train Models
+
+After feature extraction and validation, run:
+
+```bash
+python scripts/04_train_models.py
+```
+
+The script trains subject-level cross-validation models and saves result tables to `reports/tables/`.
