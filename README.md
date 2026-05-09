@@ -85,7 +85,7 @@ python scripts/00_download_ucddb.py
 ```
 
 The script downloads the selected UCDDB files from PhysioNet into `data/raw/`.
-Existing non-empty files are skipped.
+Existing complete files are skipped after checking their remote size.
 
 ## Run Data Audit
 
@@ -99,4 +99,19 @@ The script scans `data/raw/`, tries to read each UCDDB EDF signal file, prints c
 
 ```text
 reports/tables/ucddb_audit.csv
+```
+
+## Build Epoch Table
+
+From the project root:
+
+```bash
+python scripts/02_build_epochs.py
+```
+
+The script converts UCDDB records into 30-second epochs with binary labels:
+`normal` and `apnea_hypopnea`. The main output is:
+
+```text
+data/processed/epochs.csv
 ```
