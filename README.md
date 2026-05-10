@@ -154,3 +154,13 @@ python scripts/04_train_models.py
 ```
 
 The script trains subject-level cross-validation models and saves result tables to `reports/tables/`.
+
+## Diagnose Baseline Results
+
+After training baseline models, run:
+
+```bash
+python scripts/04_diagnose_results.py
+```
+
+The script analyzes fold balance, sleep-stage label distribution, threshold sensitivity, and top baseline experiments without retraining models.

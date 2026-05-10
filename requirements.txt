@@ -8,3 +8,4 @@ pyedflib
 tqdm
 requests
 xlrd
+xgboost
