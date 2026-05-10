@@ -1,0 +1,9 @@
+approach,regime,model,postprocessing,roc_auc,f1,sensitivity,specificity,average_precision,comment
+baseline flow_only,all_epochs,XGBoost,none,0.600668396343029,0.334042164070755,0.4766523637734489,0.6631836579459858,0.2737127847732132,Single Flow modality baseline.
+baseline respiratory_spo2_fusion,all_epochs,XGBoost,none,0.6200515796115463,0.3419044216811095,0.501406639978922,0.661757967871176,0.3046268004604634,Baseline respiratory + SpO2 fusion.
+improved spo2_only,sleep_only,XGBoost,enhanced epoch context,0.6725111969979165,0.4151766402299229,0.5264089846207652,0.7175984895645996,0.3717204264525869,Best pre-temporal single-modality result.
+improved respiratory_spo2_fusion,all_epochs,XGBoost,enhanced epoch context,0.6657025320107189,0.3976777277711126,0.5485545507426142,0.7009542397620846,0.3505968863125284,Best improved classical multimodal fusion.
+improved late_fusion,all_epochs,XGBoost,late fusion,0.6686696443905491,0.3541673185001628,0.4351495598416587,0.7687573709009619,0.3606772078932508,Late fusion of modality-specific models.
+temporal ensemble raw,sleep_only,MeanEnsemble,none,0.6840974580437522,0.4254735687891084,0.5514885953314336,0.7123918405695505,0.3972973823632025,SpO2 XGBoost + Flow/SpO2 HistGradientBoosting.
+temporal ensemble causal smoothing,sleep_only,MeanEnsemble,rolling mean causal,0.7013893092415386,0.4359665625148509,0.5567606888907688,0.7326076734902539,0.4243115232435214,Label-free temporal smoothing without future probabilities.
+temporal ensemble centered smoothing,sleep_only,MeanEnsemble,rolling mean centered,0.7066474117530619,0.4349195917768963,0.556960717868259,0.7304321423110148,0.4355287253176163,Offline retrospective smoothing; uses future probabilities.

@@ -1,0 +1,2 @@
+threshold,TP,FP,FN,TN,sensitivity,specificity,precision,f1,n_sleep_epochs,n_predicted_positive,predicted_positive_rate,covered_positive_epochs_rate
+0.45,2286,4383,1201,8197,0.6555778606251792,0.6515898251192369,0.3427800269905533,0.4501772351319417,16067,6669,0.4150743760502894,0.6555778606251792

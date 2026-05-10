@@ -1,0 +1,3 @@
+experiment_group,best_experiment,best_regime,best_model,best_roc_auc,best_f1,comparison_reference_auc,conclusion
+advanced contextual features,advanced_respiratory_spo2,sleep_only,XGBoost,0.6303732303643836,0.3780347629995532,0.6725,Did not improve the improved SpO2 baseline or temporal ensemble.
+segment-level reduced experiment,flow_spo2,exclude_ucddb005_sleep_only,XGBoost,0.605119469601193,0.3057395597653082,0.6725,Did not improve the improved SpO2 baseline or temporal ensemble.

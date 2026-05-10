@@ -19,10 +19,16 @@ ucddb-apnea/
 |   +-- 03_build_model_ready_features.py
 |   +-- 03_extract_features.py
 |   +-- 03_validate_dataset.py
+|   +-- 03_build_segment_features.py
 |   +-- 04_diagnose_results.py
 |   +-- 04_train_improved_models.py
 |   +-- 04_train_models.py
+|   +-- 04_train_segment_models_reduced.py
+|   +-- 04_train_temporal_ensemble.py
 |   +-- 05_analyze_results.py
+|   +-- 06_interpret_final_models.py
+|   +-- 06_audit_pipeline.py
+|   +-- 07_make_final_artifacts.py
 +-- reports/
 |   +-- figures/
 |   +-- tables/
@@ -207,6 +213,36 @@ python scripts/04_train_advanced_models.py
 
 The script tests advanced temporal/context features and six XGBoost configurations using subject-level cross-validation.
 
+## Train Reduced Segment-Level Models
+
+After building `data/processed/segment_features.csv`, run:
+
+```bash
+python scripts/04_train_segment_models_reduced.py
+```
+
+The script runs a lighter honest segment-level experiment with subject-level cross-validation and saves only aggregated results, thresholds, and a markdown report.
+
+## Train Temporal Ensemble
+
+After building `features_model_ready.csv`, run:
+
+```bash
+python scripts/04_train_temporal_ensemble.py
+```
+
+The script compares the best SpO2 baseline with a small Flow+SpO2 ensemble and label-free temporal probability smoothing under subject-level validation.
+
+## Interpret Final Models
+
+After building `features_model_ready.csv`, run:
+
+```bash
+python scripts/06_interpret_final_models.py
+```
+
+The script trains final component models on sleep-only data for feature importance analysis and saves interpretability tables, figures, and a markdown report.
+
 ## Diagnose Baseline Results
 
 After training baseline models, run:
@@ -226,3 +262,13 @@ python scripts/05_analyze_results.py
 ```
 
 The script creates final thesis tables, threshold analysis, figures, and a markdown report from saved improved-model predictions.
+
+## Make Final Thesis Artifacts
+
+After the model reports have been generated, run:
+
+```bash
+python scripts/07_make_final_artifacts.py
+```
+
+The script collects the final compact tables, figures, and artifact index for writing the thesis.
