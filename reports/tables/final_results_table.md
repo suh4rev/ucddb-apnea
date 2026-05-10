@@ -1,0 +1,12 @@
+| regime | feature_variant | experiment | n_features | roc_auc_mean | roc_auc_std | f1_mean | sensitivity_mean | specificity_mean | average_precision_mean |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| all_epochs | base | flow_only | 10 | 0.601 | 0.043 | 0.334 | 0.477 | 0.663 | 0.274 |
+| all_epochs | base | respiratory_spo2_fusion | 41 | 0.620 | 0.050 | 0.342 | 0.501 | 0.662 | 0.305 |
+| all_epochs | base | late_fusion | 53 | 0.621 | 0.051 | 0.322 | 0.399 | 0.754 | 0.303 |
+| all_epochs | enhanced | flow_only | 30 | 0.633 | 0.056 | 0.342 | 0.490 | 0.673 | 0.302 |
+| all_epochs | enhanced | spo2_only | 38 | 0.664 | 0.086 | 0.380 | 0.506 | 0.721 | 0.348 |
+| all_epochs | enhanced | respiratory_spo2_fusion | 127 | 0.666 | 0.074 | 0.398 | 0.549 | 0.701 | 0.351 |
+| all_epochs | enhanced | late_fusion | 151 | 0.669 | 0.070 | 0.354 | 0.435 | 0.769 | 0.361 |
+| sleep_only | enhanced | spo2_only | 38 | 0.673 | 0.057 | 0.415 | 0.526 | 0.718 | 0.372 |
+| sleep_only | enhanced | respiratory_spo2_fusion | 127 | 0.645 | 0.078 | 0.384 | 0.486 | 0.716 | 0.352 |
+| sleep_only | enhanced | late_fusion | 151 | 0.655 | 0.078 | 0.385 | 0.431 | 0.779 | 0.363 |
