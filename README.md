@@ -15,8 +15,12 @@ ucddb-apnea/
 |   +-- 00_download_ucddb.py
 |   +-- 01_data_audit.py
 |   +-- 02_build_epochs.py
+|   +-- 03_build_advanced_features.py
+|   +-- 03_build_model_ready_features.py
 |   +-- 03_extract_features.py
 |   +-- 03_validate_dataset.py
+|   +-- 04_diagnose_results.py
+|   +-- 04_train_improved_models.py
 |   +-- 04_train_models.py
 |   +-- 05_analyze_results.py
 +-- reports/
@@ -131,6 +135,34 @@ The script extracts ECG, Flow, ribcage, abdominal effort, SpO2, and combined eff
 data/processed/features_all.csv
 ```
 
+## Build Model-Ready Features
+
+After extracting the base feature table, run:
+
+```bash
+python scripts/03_build_model_ready_features.py
+```
+
+The script keeps all original columns and adds sleep filtering, record-normalized, and neighboring-epoch context columns. The main output is:
+
+```text
+data/processed/features_model_ready.csv
+```
+
+## Build Advanced Features
+
+To add wider temporal context and interaction features, run:
+
+```bash
+python scripts/03_build_advanced_features.py
+```
+
+The script creates:
+
+```text
+data/processed/features_advanced.csv
+```
+
 ## Validate Prepared Dataset
 
 Before training models, run:
@@ -155,6 +187,16 @@ python scripts/04_train_models.py
 
 The script trains subject-level cross-validation models and saves result tables to `reports/tables/`.
 
+## Train Improved Models
+
+After building `features_model_ready.csv`, run:
+
+```bash
+python scripts/04_train_improved_models.py
+```
+
+The script compares all-epoch and sleep-only regimes, base and enhanced features, and fusion strategies.
+
 ## Diagnose Baseline Results
 
 After training baseline models, run:
@@ -164,3 +206,13 @@ python scripts/04_diagnose_results.py
 ```
 
 The script analyzes fold balance, sleep-stage label distribution, threshold sensitivity, and top baseline experiments without retraining models.
+
+## Analyze Final Results
+
+After training improved models, run:
+
+```bash
+python scripts/05_analyze_results.py
+```
+
+The script creates final thesis tables, threshold analysis, figures, and a markdown report from saved improved-model predictions.
