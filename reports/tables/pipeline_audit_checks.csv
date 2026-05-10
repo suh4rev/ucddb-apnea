@@ -1,0 +1,27 @@
+check_name,status,details
+required_files_exist,PASS,All 6 required files exist.
+optional_improved_best_results,PASS,Optional comparison file exists: reports/tables/improved_best_results.csv
+epochs_features_all_row_count,PASS,Both tables have 20793 rows.
+features_model_ready_nonempty,PASS,Table has 20793 rows.
+features_advanced_nonempty,PASS,Table has 20793 rows.
+epochs_record_epoch_unique,PASS,Duplicated record_id+epoch_id rows: 0.
+features_all_record_epoch_unique,PASS,Duplicated record_id+epoch_id rows: 0.
+features_model_ready_record_epoch_unique,PASS,Duplicated record_id+epoch_id rows: 0.
+features_advanced_record_epoch_unique,PASS,Duplicated record_id+epoch_id rows: 0.
+epochs_labels_valid,PASS,Labels are limited to normal/apnea_hypopnea and map to 0/1.
+features_model_ready_labels_valid,PASS,Labels are limited to normal/apnea_hypopnea and map to 0/1.
+features_advanced_labels_valid,PASS,Labels are limited to normal/apnea_hypopnea and map to 0/1.
+04_train_models.py_no_epoch_random_split,PASS,No train_test_split usage found.
+04_train_models.py_subject_level_cv,PASS,Uses GroupKFold/StratifiedGroupKFold with groups=record_id.
+04_train_models.py_no_forbidden_x_columns,PASS,Reconstructed 53 X columns; none are forbidden.
+04_train_models.py_x_columns_numeric,PASS,All reconstructed X columns are numeric.
+04_train_improved_models.py_no_epoch_random_split,PASS,No train_test_split usage found.
+04_train_improved_models.py_subject_level_cv,PASS,Uses GroupKFold/StratifiedGroupKFold with groups=record_id.
+04_train_improved_models.py_no_forbidden_x_columns,PASS,Reconstructed 151 X columns; none are forbidden.
+04_train_improved_models.py_x_columns_numeric,PASS,All reconstructed X columns are numeric.
+04_train_advanced_models.py_no_epoch_random_split,PASS,No train_test_split usage found.
+04_train_advanced_models.py_subject_level_cv,PASS,Uses GroupKFold/StratifiedGroupKFold with groups=record_id.
+04_train_advanced_models.py_no_forbidden_x_columns,PASS,Reconstructed 260 X columns; none are forbidden.
+04_train_advanced_models.py_x_columns_numeric,PASS,All reconstructed X columns are numeric.
+feature_missingness,PASS,max_nan_ratio=0.0510; features_with_nan_over_20_percent=0.
+improved_vs_advanced_results,PASS,Advanced features did not improve the best ROC-AUC.

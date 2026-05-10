@@ -197,6 +197,16 @@ python scripts/04_train_improved_models.py
 
 The script compares all-epoch and sleep-only regimes, base and enhanced features, and fusion strategies.
 
+## Train Advanced Models
+
+After building `features_advanced.csv`, run:
+
+```bash
+python scripts/04_train_advanced_models.py
+```
+
+The script tests advanced temporal/context features and six XGBoost configurations using subject-level cross-validation.
+
 ## Diagnose Baseline Results
 
 After training baseline models, run:

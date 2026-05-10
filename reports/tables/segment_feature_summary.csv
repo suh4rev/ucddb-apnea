@@ -1,0 +1,2 @@
+n_rows,n_records,n_60s_segments,n_10s_segments,positive_rate_all,positive_rate_sleep_only,max_nan_ratio,features_with_nan_over_20_percent,n_segments_ucddb005,positive_rate_without_ucddb005
+187063,25,62276,124787,0.17593003426653053,0.1895526048418176,0.012936818077332235,0,7432,0.17998563722297375
