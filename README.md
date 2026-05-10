@@ -23,6 +23,7 @@ ucddb-apnea/
 |   +-- 04_diagnose_results.py
 |   +-- 04_train_improved_models.py
 |   +-- 04_train_models.py
+|   +-- 04_train_1dcnn_raw_signals.py
 |   +-- 04_train_segment_models_reduced.py
 |   +-- 04_train_temporal_ensemble.py
 |   +-- 05_analyze_results.py
@@ -232,6 +233,16 @@ python scripts/04_train_temporal_ensemble.py
 ```
 
 The script compares the best SpO2 baseline with a small Flow+SpO2 ensemble and label-free temporal probability smoothing under subject-level validation.
+
+## Train 1D-CNN Raw Signal Baseline
+
+After building `epochs.csv` and downloading raw `.rec` files, run:
+
+```bash
+python scripts/04_train_1dcnn_raw_signals.py
+```
+
+The script trains a controlled 1D-CNN baseline on raw Flow, SpO2, ribcage, and abdominal signals using subject-level cross-validation.
 
 ## Interpret Final Models
 
