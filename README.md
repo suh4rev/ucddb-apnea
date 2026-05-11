@@ -28,6 +28,7 @@ ucddb-apnea/
 |   +-- 04_train_segment_models_reduced.py
 |   +-- 04_train_temporal_ensemble.py
 |   +-- 05_analyze_results.py
+|   +-- 05_analyze_1dcnn_improvements.py
 |   +-- 06_interpret_final_models.py
 |   +-- 06_audit_pipeline.py
 |   +-- 07_make_final_artifacts.py
@@ -254,6 +255,16 @@ python scripts/04_train_1dcnn_improved.py
 ```
 
 The script trains one controlled ResNet1D improvement experiment with longer offline context and temporal probability smoothing.
+
+## Analyze 1D-CNN Improvement Layer
+
+After running the raw-signal CNN and ResNet1D scripts, run:
+
+```bash
+python scripts/05_analyze_1dcnn_improvements.py
+```
+
+The script combines saved subject-level out-of-fold DL predictions with label-free causal smoothing and equal-weight probability averaging.
 
 ## Interpret Final Models
 
