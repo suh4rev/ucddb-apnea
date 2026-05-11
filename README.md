@@ -24,6 +24,7 @@ ucddb-apnea/
 |   +-- 04_train_improved_models.py
 |   +-- 04_train_models.py
 |   +-- 04_train_1dcnn_raw_signals.py
+|   +-- 04_train_1dcnn_improved.py
 |   +-- 04_train_segment_models_reduced.py
 |   +-- 04_train_temporal_ensemble.py
 |   +-- 05_analyze_results.py
@@ -243,6 +244,16 @@ python scripts/04_train_1dcnn_raw_signals.py
 ```
 
 The script trains a controlled 1D-CNN baseline on raw Flow, SpO2, ribcage, and abdominal signals using subject-level cross-validation.
+
+## Train Improved 1D-CNN Raw Signal Model
+
+After building `epochs.csv` and downloading raw `.rec` files, run:
+
+```bash
+python scripts/04_train_1dcnn_improved.py
+```
+
+The script trains one controlled ResNet1D improvement experiment with longer offline context and temporal probability smoothing.
 
 ## Interpret Final Models
 
