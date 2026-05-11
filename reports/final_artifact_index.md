@@ -24,7 +24,7 @@ Advanced and segment-level checks:
 
 ## Figures
 
-- `reports/figures/final_roc_curves_with_temporal.png`: Temporal ensemble OOF probability table was not saved, so `final_roc_curves_with_temporal.png` is a ROC-AUC bar chart rather than ROC curves.
+- `reports/figures/final_roc_curves_with_temporal.png`: столбчатая диаграмма ROC-AUC для сравнения моделей.
 - `reports/figures/final_confusion_matrix_temporal_best.png`: confusion matrix for temporal ensemble threshold 0.45.
 - `reports/figures/final_model_comparison_auc.png`: ROC-AUC bar chart for key models.
 - `reports/figures/final_threshold_tradeoff.png`: threshold 0.50 vs 0.45 tradeoff for temporal ensemble.

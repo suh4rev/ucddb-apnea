@@ -48,6 +48,14 @@ ROC_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_roc_curves_with_temporal.png"
 CONFUSION_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_confusion_matrix_temporal_best.png"
 MODEL_COMPARISON_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_model_comparison_auc.png"
 THRESHOLD_TRADEOFF_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_threshold_tradeoff.png"
+SPO2_IMPORTANCE_PATH = REPORTS_TABLES_DIR / "final_feature_importance_spo2_xgboost.csv"
+FLOW_SPO2_IMPORTANCE_PATH = REPORTS_TABLES_DIR / "final_feature_importance_flow_spo2_hgb.csv"
+SPO2_IMPORTANCE_FIGURE_PATH = (
+    REPORTS_FIGURES_DIR / "final_feature_importance_spo2_xgboost.png"
+)
+FLOW_SPO2_IMPORTANCE_FIGURE_PATH = (
+    REPORTS_FIGURES_DIR / "final_feature_importance_flow_spo2_hgb.png"
+)
 
 PREVIOUS_BEST_AUC = 0.6725
 MASTER_COLUMNS = [
@@ -617,12 +625,16 @@ def plot_auc_bar(
     path: Path,
     title: str,
     label_column: str = "approach",
+    label_map: dict[str, str] | None = None,
 ) -> None:
     plot_table = table.dropna(subset=["roc_auc"]).copy()
     if plot_table.empty:
         return
 
-    labels = plot_table[label_column].astype(str).tolist()
+    labels = plot_table[label_column].astype(str)
+    if label_map:
+        labels = labels.map(lambda value: label_map.get(value, value))
+    labels = labels.tolist()
     values = plot_table["roc_auc"].astype(float).tolist()
 
     fig, ax = plt.subplots(figsize=(10, 5))
@@ -633,7 +645,7 @@ def plot_auc_bar(
     ax.tick_params(axis="x", rotation=35)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
-    fig.savefig(path, dpi=200)
+    fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -652,11 +664,17 @@ def plot_final_roc_placeholder(master: pd.DataFrame) -> str:
     plot_auc_bar(
         selected,
         ROC_FIGURE_PATH,
-        "ROC-AUC comparison (ROC curves unavailable for temporal ensemble)",
+        "Сравнение моделей по ROC-AUC",
+        label_map={
+            "improved spo2_only": "SpO₂-модель",
+            "improved respiratory_spo2_fusion": "Дыхание + SpO₂",
+            "temporal ensemble raw": "Temporal ensemble",
+            "temporal ensemble causal smoothing": "Temporal ensemble, causal",
+            "temporal ensemble centered smoothing": "Temporal ensemble, centered",
+        },
     )
     return (
-        "Temporal ensemble OOF probability table was not saved, so "
-        "`final_roc_curves_with_temporal.png` is a ROC-AUC bar chart rather than ROC curves."
+        "столбчатая диаграмма ROC-AUC для сравнения моделей."
     )
 
 
@@ -672,18 +690,18 @@ def plot_confusion_matrix(practical_metrics: pd.DataFrame) -> None:
     fig, ax = plt.subplots(figsize=(5, 4))
     image = ax.imshow(matrix)
     fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
-    ax.set_title("Temporal ensemble confusion matrix")
-    ax.set_xlabel("Predicted label")
-    ax.set_ylabel("True label")
-    ax.set_xticks([0, 1], labels=["normal", "apnea_hypopnea"])
-    ax.set_yticks([0, 1], labels=["normal", "apnea_hypopnea"])
+    ax.set_title("Матрица ошибок temporal ensemble")
+    ax.set_xlabel("Предсказанный класс")
+    ax.set_ylabel("Истинный класс")
+    ax.set_xticks([0, 1], labels=["норма", "апноэ/гипопноэ"])
+    ax.set_yticks([0, 1], labels=["норма", "апноэ/гипопноэ"])
 
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
             ax.text(j, i, str(matrix[i, j]), ha="center", va="center")
 
-    fig.tight_layout()
-    fig.savefig(CONFUSION_FIGURE_PATH, dpi=200)
+    fig.tight_layout(pad=1.5)
+    fig.savefig(CONFUSION_FIGURE_PATH, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -691,7 +709,7 @@ def plot_model_comparison(comparison: pd.DataFrame) -> None:
     plot_auc_bar(
         comparison,
         MODEL_COMPARISON_FIGURE_PATH,
-        "ML vs DL comparison by ROC-AUC",
+        "Сравнение ML и DL моделей по ROC-AUC",
     )
 
 
@@ -721,7 +739,7 @@ def plot_threshold_tradeoff(
         )
     rows.append(
         {
-            "threshold": format_metric(best_threshold["threshold"]),
+            "threshold": f"{float(best_threshold['threshold']):.2f}",
             "f1": float(best_threshold["f1"]),
             "sensitivity": float(best_threshold["sensitivity"]),
             "specificity": float(best_threshold["specificity"]),
@@ -733,16 +751,58 @@ def plot_threshold_tradeoff(
     width = 0.25
     fig, ax = plt.subplots(figsize=(7, 4))
     ax.bar(x - width, tradeoff["f1"], width, label="F1")
-    ax.bar(x, tradeoff["sensitivity"], width, label="Sensitivity")
-    ax.bar(x + width, tradeoff["specificity"], width, label="Specificity")
-    ax.set_xticks(x, labels=[f"threshold {value}" for value in tradeoff["threshold"]])
+    ax.bar(x, tradeoff["sensitivity"], width, label="Чувствительность")
+    ax.bar(x + width, tradeoff["specificity"], width, label="Специфичность")
+    ax.set_xticks(x, labels=[f"порог {value}" for value in tradeoff["threshold"]])
     ax.set_ylim(0, 1)
-    ax.set_title("Temporal ensemble threshold tradeoff")
+    ax.set_title("Влияние порога классификации temporal ensemble")
     ax.legend()
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
-    fig.savefig(THRESHOLD_TRADEOFF_FIGURE_PATH, dpi=200)
+    fig.savefig(THRESHOLD_TRADEOFF_FIGURE_PATH, dpi=200, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_feature_importance_from_csv(
+    importance_path: Path,
+    value_column: str,
+    title: str,
+    xlabel: str,
+    output_path: Path,
+    top_n: int = 20,
+) -> None:
+    importance = read_csv(importance_path, required=False)
+    if importance.empty or "feature" not in importance.columns:
+        return
+    if value_column not in importance.columns:
+        return
+
+    top = importance.head(top_n).iloc[::-1].copy()
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.barh(top["feature"], top[value_column])
+    ax.set_xlabel(xlabel)
+    ax.set_title(title)
+    ax.grid(axis="x", alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_feature_importance_figures() -> None:
+    plot_feature_importance_from_csv(
+        SPO2_IMPORTANCE_PATH,
+        "importance_gain",
+        "Важность признаков SpO₂-модели XGBoost",
+        "Важность признака",
+        SPO2_IMPORTANCE_FIGURE_PATH,
+    )
+    plot_feature_importance_from_csv(
+        FLOW_SPO2_IMPORTANCE_PATH,
+        "permutation_importance_mean",
+        "Важность признаков модели Flow+SpO₂",
+        "Среднее снижение качества при перестановке признака",
+        FLOW_SPO2_IMPORTANCE_FIGURE_PATH,
+    )
 
 
 def build_index(
@@ -855,6 +915,7 @@ def main() -> None:
         read_csv(TEMPORAL_SUMMARY_PATH),
         read_csv(TEMPORAL_THRESHOLDS_PATH),
     )
+    plot_feature_importance_figures()
 
     OUTPUT_INDEX_PATH.write_text(
         build_index(dataset_summary, master, ml_vs_dl, negative, roc_note),
