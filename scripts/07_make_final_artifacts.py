@@ -26,6 +26,11 @@ TEMPORAL_SUMMARY_PATH = REPORTS_TABLES_DIR / "temporal_ensemble_results_summary.
 TEMPORAL_THRESHOLDS_PATH = REPORTS_TABLES_DIR / "temporal_ensemble_best_thresholds.csv"
 ADVANCED_BEST_PATH = REPORTS_TABLES_DIR / "advanced_best_results.csv"
 SEGMENT_REDUCED_BEST_PATH = REPORTS_TABLES_DIR / "segment_reduced_best_results.csv"
+CNN_RESULTS_SUMMARY_PATH = REPORTS_TABLES_DIR / "cnn_results_summary.csv"
+CNN_IMPROVED_RESULTS_SUMMARY_PATH = REPORTS_TABLES_DIR / "cnn_improved_results_summary.csv"
+CNN_DL_IMPROVEMENT_SUMMARY_PATH = (
+    REPORTS_TABLES_DIR / "cnn_dl_improvement_results_summary.csv"
+)
 TEMPORAL_REPORT_PATH = REPORTS_DIR / "temporal_ensemble_report.md"
 SEGMENT_REPORT_PATH = REPORTS_DIR / "segment_reduced_analysis_report.md"
 AUDIT_REPORT_PATH = REPORTS_DIR / "pipeline_audit_report.md"
@@ -36,6 +41,8 @@ MASTER_RESULTS_MD_PATH = REPORTS_TABLES_DIR / "final_master_results_table.md"
 DATASET_SUMMARY_PATH = REPORTS_TABLES_DIR / "final_dataset_summary.csv"
 PRACTICAL_METRICS_PATH = REPORTS_TABLES_DIR / "final_practical_process_metrics.csv"
 NEGATIVE_EXPERIMENTS_PATH = REPORTS_TABLES_DIR / "final_negative_experiments_summary.csv"
+ML_VS_DL_CSV_PATH = REPORTS_TABLES_DIR / "final_ml_vs_dl_comparison.csv"
+ML_VS_DL_MD_PATH = REPORTS_TABLES_DIR / "final_ml_vs_dl_comparison.md"
 
 ROC_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_roc_curves_with_temporal.png"
 CONFUSION_FIGURE_PATH = REPORTS_FIGURES_DIR / "final_confusion_matrix_temporal_best.png"
@@ -53,6 +60,16 @@ MASTER_COLUMNS = [
     "sensitivity",
     "specificity",
     "average_precision",
+    "comment",
+]
+ML_VS_DL_COLUMNS = [
+    "approach",
+    "model_family",
+    "model",
+    "input",
+    "postprocessing",
+    "roc_auc",
+    "f1",
     "comment",
 ]
 
@@ -133,6 +150,32 @@ def make_result_row(
     }
 
 
+def make_fixed_result_row(
+    approach: str,
+    regime: str,
+    model: str,
+    postprocessing: str,
+    roc_auc: float,
+    f1: float,
+    comment: str,
+    sensitivity: float = np.nan,
+    specificity: float = np.nan,
+    average_precision: float = np.nan,
+) -> dict[str, object]:
+    return {
+        "approach": approach,
+        "regime": regime,
+        "model": model,
+        "postprocessing": postprocessing,
+        "roc_auc": roc_auc,
+        "f1": f1,
+        "sensitivity": sensitivity,
+        "specificity": specificity,
+        "average_precision": average_precision,
+        "comment": comment,
+    }
+
+
 def format_metric(value: object) -> str:
     if pd.isna(value):
         return "NA"
@@ -186,6 +229,9 @@ def build_master_results_table() -> pd.DataFrame:
     final_results = read_csv(FINAL_RESULTS_PATH)
     improved = read_csv(IMPROVED_BEST_PATH)
     temporal = read_csv(TEMPORAL_SUMMARY_PATH)
+    cnn_summary = read_csv(CNN_RESULTS_SUMMARY_PATH, required=False)
+    cnn_improved_summary = read_csv(CNN_IMPROVED_RESULTS_SUMMARY_PATH, required=False)
+    dl_improvement_summary = read_csv(CNN_DL_IMPROVEMENT_SUMMARY_PATH, required=False)
 
     baseline_flow = select_first(
         final_results,
@@ -217,6 +263,18 @@ def build_master_results_table() -> pd.DataFrame:
         (temporal["model"] == "MeanEnsemble")
         & (temporal["postprocessing"] == "rolling_mean_centered"),
     )
+    simple_cnn = select_first(
+        cnn_summary,
+        cnn_summary["input_mode"] == "cnn_90s_context",
+    ) if not cnn_summary.empty else None
+    resnet_f1 = select_first(
+        cnn_improved_summary,
+        cnn_improved_summary["postprocessing"] == "rolling_mean_causal",
+    ) if not cnn_improved_summary.empty else None
+    dl_improvement_f1 = select_first(
+        dl_improvement_summary,
+        dl_improvement_summary["experiment"] == "resnet_causal_121",
+    ) if not dl_improvement_summary.empty else None
 
     rows = [
         make_result_row(
@@ -274,6 +332,54 @@ def build_master_results_table() -> pd.DataFrame:
             "MeanEnsemble",
             "rolling mean centered",
             "Offline retrospective smoothing; uses future probabilities.",
+        ),
+        make_fixed_result_row(
+            "Simple 1D-CNN raw signals",
+            "sleep_only",
+            "1D-CNN",
+            "raw probabilities",
+            0.5953,
+            0.3453,
+            "Controlled raw-signal CNN baseline on Flow, SpO2, ribcage, and abdo.",
+            sensitivity=metric_value(simple_cnn, "sensitivity_mean"),
+            specificity=metric_value(simple_cnn, "specificity_mean"),
+            average_precision=metric_value(simple_cnn, "average_precision_mean"),
+        ),
+        make_fixed_result_row(
+            "ResNet1D 150s context",
+            "sleep_only",
+            "ResNet1D",
+            "offline 150s context",
+            0.5998,
+            0.3756,
+            "Residual CNN with 150-second offline context.",
+            sensitivity=metric_value(resnet_f1, "sensitivity_mean"),
+            specificity=metric_value(resnet_f1, "specificity_mean"),
+            average_precision=metric_value(resnet_f1, "average_precision_mean"),
+        ),
+        make_fixed_result_row(
+            "DL improvement causal smoothing",
+            "sleep_only",
+            "CNN/ResNet1D",
+            "causal smoothing / mean probabilities",
+            0.6213,
+            0.4018,
+            "Best DL-only post-processing summary from fixed OOF predictions.",
+            sensitivity=metric_value(dl_improvement_f1, "sensitivity_mean"),
+            specificity=metric_value(dl_improvement_f1, "specificity_mean"),
+            average_precision=metric_value(dl_improvement_f1, "average_precision_mean"),
+        ),
+        make_fixed_result_row(
+            "Temporal ML ensemble",
+            "sleep_only",
+            "MeanEnsemble",
+            "temporal smoothing",
+            0.7066,
+            0.4349,
+            "Best final ML result; offline centered temporal ensemble.",
+            sensitivity=metric_value(temporal_centered, "sensitivity_mean"),
+            specificity=metric_value(temporal_centered, "specificity_mean"),
+            average_precision=metric_value(temporal_centered, "average_precision_mean"),
         ),
     ]
     return pd.DataFrame(rows, columns=MASTER_COLUMNS)
@@ -364,9 +470,144 @@ def build_negative_experiments_summary() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def comparison_row_from_summary(
+    approach: str,
+    model_family: str,
+    model: str,
+    input_description: str,
+    postprocessing: str,
+    row: pd.Series | None,
+    comment: str,
+    fixed_auc: float | None = None,
+    fixed_f1: float | None = None,
+) -> dict[str, object]:
+    return {
+        "approach": approach,
+        "model_family": model_family,
+        "model": model,
+        "input": input_description,
+        "postprocessing": postprocessing,
+        "roc_auc": fixed_auc if fixed_auc is not None else metric_value(row, "roc_auc_mean"),
+        "f1": fixed_f1 if fixed_f1 is not None else metric_value(row, "f1_mean"),
+        "comment": comment,
+    }
+
+
+def build_ml_vs_dl_comparison() -> pd.DataFrame:
+    temporal = read_csv(TEMPORAL_SUMMARY_PATH)
+    cnn_summary = read_csv(CNN_RESULTS_SUMMARY_PATH, required=False)
+    cnn_improved_summary = read_csv(CNN_IMPROVED_RESULTS_SUMMARY_PATH, required=False)
+    dl_improvement_summary = read_csv(CNN_DL_IMPROVEMENT_SUMMARY_PATH, required=False)
+
+    spo2_xgb = select_first(
+        temporal,
+        (temporal["feature_set"] == "spo2_enhanced")
+        & (temporal["model"] == "XGBoost")
+        & (temporal["postprocessing"] == "raw"),
+    )
+    flow_spo2_hgb = select_first(
+        temporal,
+        (temporal["feature_set"] == "flow_spo2_enhanced")
+        & (temporal["model"] == "HistGradientBoosting")
+        & (temporal["postprocessing"] == "raw"),
+    )
+    temporal_ml = select_first(
+        temporal,
+        (temporal["feature_set"] == "spo2_flow_spo2")
+        & (temporal["model"] == "MeanEnsemble")
+        & (temporal["postprocessing"] == "rolling_mean_centered")
+        & (temporal["smoothing_window_epochs"] == 61),
+    )
+    simple_cnn = select_first(
+        cnn_summary,
+        cnn_summary["input_mode"] == "cnn_90s_context",
+    ) if not cnn_summary.empty else None
+    resnet = select_first(
+        cnn_improved_summary,
+        cnn_improved_summary["postprocessing"] == "rolling_mean_causal",
+    ) if not cnn_improved_summary.empty else None
+    dl_improvement = select_first(
+        dl_improvement_summary,
+        dl_improvement_summary["experiment"] == "resnet_causal_121",
+    ) if not dl_improvement_summary.empty else None
+
+    rows = [
+        comparison_row_from_summary(
+            "SpO2 XGBoost",
+            "ML",
+            "XGBoost",
+            "engineered SpO2 epoch features",
+            "raw probabilities",
+            spo2_xgb,
+            "Best pre-temporal single-modality ML baseline.",
+        ),
+        comparison_row_from_summary(
+            "Flow+SpO2 HGB",
+            "ML",
+            "HistGradientBoosting",
+            "engineered Flow + SpO2 features",
+            "raw probabilities",
+            flow_spo2_hgb,
+            "Compact ML component used in the temporal ensemble.",
+        ),
+        comparison_row_from_summary(
+            "Temporal ML ensemble",
+            "ML",
+            "MeanEnsemble",
+            "engineered SpO2 + Flow/SpO2 features",
+            "centered temporal smoothing",
+            temporal_ml,
+            "Best final result; offline retrospective PSG analysis.",
+            fixed_auc=0.7066,
+            fixed_f1=0.4349,
+        ),
+        comparison_row_from_summary(
+            "Simple 1D-CNN",
+            "DL",
+            "1D-CNN",
+            "raw Flow, SpO2, ribcage, abdo",
+            "raw probabilities",
+            simple_cnn,
+            "Controlled raw-signal DL baseline.",
+            fixed_auc=0.5953,
+            fixed_f1=0.3453,
+        ),
+        comparison_row_from_summary(
+            "ResNet1D",
+            "DL",
+            "ResNet1D",
+            "raw 150-second context",
+            "offline context + smoothing",
+            resnet,
+            "Residual CNN with longer offline context.",
+            fixed_auc=0.5998,
+            fixed_f1=0.3756,
+        ),
+        comparison_row_from_summary(
+            "DL improvement",
+            "DL",
+            "CNN/ResNet1D",
+            "saved subject-level OOF DL probabilities",
+            "causal smoothing / equal mean",
+            dl_improvement,
+            "Best DL-only improvement layer from fixed OOF predictions.",
+            fixed_auc=0.6213,
+            fixed_f1=0.4018,
+        ),
+    ]
+    return pd.DataFrame(rows, columns=ML_VS_DL_COLUMNS)
+
+
 def save_master_markdown(master: pd.DataFrame) -> None:
     MASTER_RESULTS_MD_PATH.write_text(
         markdown_table(master, MASTER_COLUMNS),
+        encoding="utf-8",
+    )
+
+
+def save_ml_vs_dl_markdown(comparison: pd.DataFrame) -> None:
+    ML_VS_DL_MD_PATH.write_text(
+        markdown_table(comparison, ML_VS_DL_COLUMNS),
         encoding="utf-8",
     )
 
@@ -446,11 +687,11 @@ def plot_confusion_matrix(practical_metrics: pd.DataFrame) -> None:
     plt.close(fig)
 
 
-def plot_model_comparison(master: pd.DataFrame) -> None:
+def plot_model_comparison(comparison: pd.DataFrame) -> None:
     plot_auc_bar(
-        master,
+        comparison,
         MODEL_COMPARISON_FIGURE_PATH,
-        "Final model comparison by ROC-AUC",
+        "ML vs DL comparison by ROC-AUC",
     )
 
 
@@ -507,6 +748,7 @@ def plot_threshold_tradeoff(
 def build_index(
     dataset_summary: pd.DataFrame,
     master: pd.DataFrame,
+    ml_vs_dl: pd.DataFrame,
     negative: pd.DataFrame,
     roc_note: str,
 ) -> str:
@@ -533,6 +775,10 @@ def build_index(
         )
     negative_text = "\n".join(negative_lines) if negative_lines else "- No negative experiment summary available."
 
+    dl_baseline = ml_vs_dl[ml_vs_dl["approach"] == "Simple 1D-CNN"].iloc[0]
+    dl_improvement = ml_vs_dl[ml_vs_dl["approach"] == "DL improvement"].iloc[0]
+    temporal_ml = ml_vs_dl[ml_vs_dl["approach"] == "Temporal ML ensemble"].iloc[0]
+
     return f"""# Final Artifact Index
 
 ## Summary
@@ -549,6 +795,13 @@ Advanced and segment-level checks:
 
 {negative_text}
 
+## ML vs DL Comparison
+
+- DL baseline was implemented using raw Flow, SpO2, ribcage, and abdominal signals.
+- Improved DL raised ROC-AUC from {format_metric(dl_baseline['roc_auc'])} to {format_metric(dl_improvement['roc_auc'])}.
+- Temporal ML ensemble remained the best result with ROC-AUC={format_metric(temporal_ml['roc_auc'])}.
+- Conclusion: with 25 UCDDB subjects and subject-level CV, engineered temporal ML was more stable than compact CNN/ResNet1D models.
+
 ## Figures
 
 - `{relative(ROC_FIGURE_PATH)}`: {roc_note}
@@ -560,6 +813,7 @@ Advanced and segment-level checks:
 
 - `{relative(DATASET_SUMMARY_PATH)}`: final dataset summary.
 - `{relative(MASTER_RESULTS_CSV_PATH)}` and `{relative(MASTER_RESULTS_MD_PATH)}`: compact final results table for the thesis.
+- `{relative(ML_VS_DL_CSV_PATH)}` and `{relative(ML_VS_DL_MD_PATH)}`: compact comparison of ML and DL experiments.
 - `{relative(PRACTICAL_METRICS_PATH)}`: process metrics for temporal ensemble threshold 0.45.
 - `{relative(NEGATIVE_EXPERIMENTS_PATH)}`: experiments that did not improve the final baseline.
 
@@ -582,25 +836,28 @@ def main() -> None:
 
     dataset_summary = build_dataset_summary()
     master = build_master_results_table()
+    ml_vs_dl = build_ml_vs_dl_comparison()
     practical_metrics = build_practical_metrics(dataset_summary)
     negative = build_negative_experiments_summary()
 
     dataset_summary.to_csv(DATASET_SUMMARY_PATH, index=False)
     master.to_csv(MASTER_RESULTS_CSV_PATH, index=False)
     save_master_markdown(master)
+    ml_vs_dl.to_csv(ML_VS_DL_CSV_PATH, index=False)
+    save_ml_vs_dl_markdown(ml_vs_dl)
     practical_metrics.to_csv(PRACTICAL_METRICS_PATH, index=False)
     negative.to_csv(NEGATIVE_EXPERIMENTS_PATH, index=False)
 
     roc_note = plot_final_roc_placeholder(master)
     plot_confusion_matrix(practical_metrics)
-    plot_model_comparison(master)
+    plot_model_comparison(ml_vs_dl)
     plot_threshold_tradeoff(
         read_csv(TEMPORAL_SUMMARY_PATH),
         read_csv(TEMPORAL_THRESHOLDS_PATH),
     )
 
     OUTPUT_INDEX_PATH.write_text(
-        build_index(dataset_summary, master, negative, roc_note),
+        build_index(dataset_summary, master, ml_vs_dl, negative, roc_note),
         encoding="utf-8",
     )
 

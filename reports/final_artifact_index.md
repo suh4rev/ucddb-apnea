@@ -15,6 +15,13 @@ Advanced and segment-level checks:
 - advanced contextual features: best ROC-AUC=0.6304; Did not improve the improved SpO2 baseline or temporal ensemble.
 - segment-level reduced experiment: best ROC-AUC=0.6051; Did not improve the improved SpO2 baseline or temporal ensemble.
 
+## ML vs DL Comparison
+
+- DL baseline was implemented using raw Flow, SpO2, ribcage, and abdominal signals.
+- Improved DL raised ROC-AUC from 0.5953 to 0.6213.
+- Temporal ML ensemble remained the best result with ROC-AUC=0.7066.
+- Conclusion: with 25 UCDDB subjects and subject-level CV, engineered temporal ML was more stable than compact CNN/ResNet1D models.
+
 ## Figures
 
 - `reports/figures/final_roc_curves_with_temporal.png`: Temporal ensemble OOF probability table was not saved, so `final_roc_curves_with_temporal.png` is a ROC-AUC bar chart rather than ROC curves.
@@ -26,6 +33,7 @@ Advanced and segment-level checks:
 
 - `reports/tables/final_dataset_summary.csv`: final dataset summary.
 - `reports/tables/final_master_results_table.csv` and `reports/tables/final_master_results_table.md`: compact final results table for the thesis.
+- `reports/tables/final_ml_vs_dl_comparison.csv` and `reports/tables/final_ml_vs_dl_comparison.md`: compact comparison of ML and DL experiments.
 - `reports/tables/final_practical_process_metrics.csv`: process metrics for temporal ensemble threshold 0.45.
 - `reports/tables/final_negative_experiments_summary.csv`: experiments that did not improve the final baseline.
 

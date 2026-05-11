@@ -7,3 +7,7 @@ improved late_fusion,all_epochs,XGBoost,late fusion,0.6686696443905491,0.3541673
 temporal ensemble raw,sleep_only,MeanEnsemble,none,0.6840974580437522,0.4254735687891084,0.5514885953314336,0.7123918405695505,0.3972973823632025,SpO2 XGBoost + Flow/SpO2 HistGradientBoosting.
 temporal ensemble causal smoothing,sleep_only,MeanEnsemble,rolling mean causal,0.7013893092415386,0.4359665625148509,0.5567606888907688,0.7326076734902539,0.4243115232435214,Label-free temporal smoothing without future probabilities.
 temporal ensemble centered smoothing,sleep_only,MeanEnsemble,rolling mean centered,0.7066474117530619,0.4349195917768963,0.556960717868259,0.7304321423110148,0.4355287253176163,Offline retrospective smoothing; uses future probabilities.
+Simple 1D-CNN raw signals,sleep_only,1D-CNN,raw probabilities,0.5953,0.3453,0.440020149721593,0.6950793772973339,0.2934293640801112,"Controlled raw-signal CNN baseline on Flow, SpO2, ribcage, and abdo."
+ResNet1D 150s context,sleep_only,ResNet1D,offline 150s context,0.5998,0.3756,0.5066528297182467,0.6668620403194397,0.293225065719796,Residual CNN with 150-second offline context.
+DL improvement causal smoothing,sleep_only,CNN/ResNet1D,causal smoothing / mean probabilities,0.6213,0.4018,0.4898296409890434,0.7235563208092145,0.345648580377847,Best DL-only post-processing summary from fixed OOF predictions.
+Temporal ML ensemble,sleep_only,MeanEnsemble,temporal smoothing,0.7066,0.4349,0.556960717868259,0.7304321423110148,0.4355287253176163,Best final ML result; offline centered temporal ensemble.

@@ -1,0 +1,8 @@
+| approach | model_family | model | input | postprocessing | roc_auc | f1 | comment |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| SpO2 XGBoost | ML | XGBoost | engineered SpO2 epoch features | raw probabilities | 0.6725 | 0.4152 | Best pre-temporal single-modality ML baseline. |
+| Flow+SpO2 HGB | ML | HistGradientBoosting | engineered Flow + SpO2 features | raw probabilities | 0.6721 | 0.4149 | Compact ML component used in the temporal ensemble. |
+| Temporal ML ensemble | ML | MeanEnsemble | engineered SpO2 + Flow/SpO2 features | centered temporal smoothing | 0.7066 | 0.4349 | Best final result; offline retrospective PSG analysis. |
+| Simple 1D-CNN | DL | 1D-CNN | raw Flow, SpO2, ribcage, abdo | raw probabilities | 0.5953 | 0.3453 | Controlled raw-signal DL baseline. |
+| ResNet1D | DL | ResNet1D | raw 150-second context | offline context + smoothing | 0.5998 | 0.3756 | Residual CNN with longer offline context. |
+| DL improvement | DL | CNN/ResNet1D | saved subject-level OOF DL probabilities | causal smoothing / equal mean | 0.6213 | 0.4018 | Best DL-only improvement layer from fixed OOF predictions. |
