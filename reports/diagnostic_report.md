@@ -5,7 +5,7 @@ This report analyzes already trained baseline models without retraining.
 ## Best Experiments
 
 - Best by ROC-AUC: `late_fusion` / `XGBoost` with mean ROC-AUC 0.6210.
-- Best by F1: `respiratory_spo2_fusion` / `XGBoost` with mean F1 0.3419.
+- Best by F1: `full_minus_ecg` / `XGBoost` with mean F1 0.3419.
 
 ## Fold Variability
 

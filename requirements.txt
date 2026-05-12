@@ -1,11 +1,18 @@
+# Core pipeline dependencies.
+#
+# These packages are enough for UCDDB download, data audit, epoch/feature
+# construction, classical ML training, temporal ensemble evaluation,
+# interpretability tables, and final report artifacts.
 numpy
 pandas>=2.2,<3
 scipy
 scikit-learn
 matplotlib
-wfdb
 pyedflib
 tqdm
 requests
-xlrd
+xlrd>=2.0.1
 xgboost
+
+# Kept for compatibility with common PhysioNet workflows and future signal IO.
+wfdb

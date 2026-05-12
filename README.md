@@ -1,55 +1,234 @@
 # UCDDB Apnea Classification
 
-Minimal Python project for a master's thesis on binary apnea/hypopnea classification using the UCDDB dataset.
+Репозиторий к ВКР по бинарной классификации эпизодов апноэ/гипопноэ на датасете UCDDB. Единица анализа - 30-секундная эпоха полисомнографической записи.
 
-At this stage, the project only implements the first step: raw data audit.
+Публичный репозиторий: https://github.com/suh4rev/ucddb-apnea
 
-## Project Structure
+## Что Реализовано
 
-```text
-ucddb-apnea/
-+-- data/
-|   +-- raw/
-|   +-- processed/
-+-- scripts/
-|   +-- 00_download_ucddb.py
-|   +-- 01_data_audit.py
-|   +-- 02_build_epochs.py
-|   +-- 03_build_advanced_features.py
-|   +-- 03_build_model_ready_features.py
-|   +-- 03_extract_features.py
-|   +-- 03_validate_dataset.py
-|   +-- 03_build_segment_features.py
-|   +-- 04_diagnose_results.py
-|   +-- 04_train_improved_models.py
-|   +-- 04_train_models.py
-|   +-- 04_train_1dcnn_raw_signals.py
-|   +-- 04_train_1dcnn_improved.py
-|   +-- 04_train_segment_models_reduced.py
-|   +-- 04_train_temporal_ensemble.py
-|   +-- 05_analyze_results.py
-|   +-- 05_analyze_1dcnn_improvements.py
-|   +-- 06_interpret_final_models.py
-|   +-- 06_audit_pipeline.py
-|   +-- 07_make_final_artifacts.py
-+-- reports/
-|   +-- figures/
-|   +-- tables/
-+-- config.py
-+-- README.md
-+-- requirements.txt
-+-- .gitignore
-```
+- загрузка и проверка данных UCDDB;
+- построение 30-секундных эпох и признаков Flow, SpO2, усилий дыхания и ECG;
+- subject-level cross-validation с группировкой по `record_id`;
+- обучение ML-моделей и финального temporal ensemble;
+- анализ интерпретируемости, ошибок FP/FN и стадий сна;
+- Docker-контейнер, DVC-pipeline, optional MLflow/W&B tracking;
+- benchmark инференса и экспорт финальной модели.
 
-## Data
-
-Place the downloaded UCDDB files into:
+## Структура
 
 ```text
-data/raw/
+data/raw/             сырые данные UCDDB, не хранятся в Git
+data/processed/       подготовленные таблицы признаков
+reports/              отчеты, таблицы, рисунки и модельный артефакт
+scripts/pipeline/     основной воспроизводимый pipeline
+scripts/analysis/     анализ результатов и ошибок
+scripts/experiments/  дополнительные эксперименты
+scripts/mlops/        tracking, benchmark, экспорт модели
+docs/                 карта pipeline и описание тюнинга
 ```
 
-For the PhysioNet UCDDB release, the downloader keeps only files needed for this project:
+## Установка
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Дополнительные зависимости:
+
+```powershell
+pip install -r requirements-dl.txt      # эксперименты с 1D-CNN/ResNet1D
+pip install -r requirements-mlops.txt   # DVC, MLflow, W&B, Optuna, benchmark
+```
+
+## Основной Pipeline
+
+Запускать из корня репозитория:
+
+```powershell
+python scripts/pipeline/00_download_ucddb.py
+python scripts/pipeline/01_data_audit.py
+python scripts/pipeline/02_build_epochs.py
+python scripts/pipeline/03_extract_features.py
+python scripts/pipeline/03_build_model_ready_features.py
+python scripts/pipeline/03_validate_dataset.py
+python scripts/pipeline/04_train_improved_models.py
+python scripts/analysis/05_analyze_results.py
+python scripts/pipeline/04_train_temporal_ensemble.py
+python scripts/mlops/benchmark_inference.py
+python scripts/analysis/06_error_analysis.py
+python scripts/pipeline/06_audit_pipeline.py
+python scripts/pipeline/06_interpret_final_models.py
+python scripts/pipeline/07_make_final_artifacts.py
+```
+
+Короткая проверка готового проекта:
+
+```powershell
+python scripts/pipeline/03_validate_dataset.py
+python scripts/pipeline/06_audit_pipeline.py
+```
+
+Последняя проверка дала:
+
+```text
+Validation: PASS 36, WARNING 0, FAIL 0
+Pipeline audit: PASS 26, WARNING 0, FAIL 0
+```
+
+## DVC
+
+Pipeline описан в `dvc.yaml`, зафиксированное состояние - в `dvc.lock`.
+
+```powershell
+dvc status
+dvc dag
+dvc repro --dry
+```
+
+Полезные стадии:
+
+```powershell
+dvc repro validate_dataset
+dvc repro audit_pipeline
+dvc repro benchmark_inference
+dvc repro analyze_errors
+dvc repro make_final_artifacts
+```
+
+Сырые медицинские данные не коммитятся. DVC используется для описания зависимостей, контроля стадий и воспроизводимости. Git LFS не является обязательным для текущей версии; при появлении крупных бинарных моделей их можно вынести в DVC remote или Git LFS.
+
+## Docker
+
+Сборка CPU-образа:
+
+```powershell
+docker build -t ucddb-apnea:core .
+docker run --rm ucddb-apnea:core
+```
+
+Запуск pipeline-команды с локальными `data/` и `reports/`:
+
+```powershell
+docker run --rm `
+  -v "${PWD}\data:/app/data" `
+  -v "${PWD}\reports:/app/reports" `
+  ucddb-apnea:core `
+  python scripts/pipeline/03_validate_dataset.py
+```
+
+Опциональные варианты:
+
+```powershell
+docker build --build-arg REQUIREMENTS=requirements-dl.txt -t ucddb-apnea:dl .
+docker build --build-arg REQUIREMENTS=requirements-mlops.txt -t ucddb-apnea:mlops .
+```
+
+## Tracking Экспериментов
+
+MLflow и W&B выключены по умолчанию. Их можно включить через переменные окружения.
+
+MLflow:
+
+```powershell
+$env:UCDDB_ENABLE_MLFLOW = "1"
+python scripts/pipeline/04_train_temporal_ensemble.py
+mlflow ui --backend-store-uri mlruns
+```
+
+W&B offline:
+
+```powershell
+$env:UCDDB_ENABLE_WANDB = "1"
+$env:WANDB_MODE = "offline"
+python scripts/pipeline/04_train_temporal_ensemble.py
+```
+
+Логируются параметры запуска, схема валидации, размеры данных, метрики ROC-AUC/F1, threshold tuning и итоговые CSV/Markdown артефакты.
+
+## Подбор Гиперпараметров
+
+Краткое описание тюнинга: [docs/hyperparameter_tuning.md](docs/hyperparameter_tuning.md).
+
+Фактически использованы ограниченные grid/manual searches с grouped CV по пациентам:
+
+- 5-fold subject-level CV по `record_id`;
+- выбор по ROC-AUC, дополнительный анализ F1, sensitivity, specificity, AP;
+- XGBoost grid по `n_estimators`, `learning_rate`, `max_depth`, `min_child_weight`, `reg_lambda`, `subsample`, `colsample_bytree`;
+- post-processing search: окна сглаживания 15, 31, 61 эпох;
+- threshold grid: 0.05-0.95 с шагом 0.05.
+
+Optuna добавлена в MLOps-зависимости как опциональное расширение, но финальный результат получен контролируемым поиском конфигураций.
+
+## Результаты
+
+Финальная модель: temporal ensemble с centered rolling smoothing.
+
+```text
+ROC-AUC:      0.7066
+F1 @ 0.50:    0.4349
+F1 @ 0.45:    0.4502
+Sensitivity:  0.6556
+Specificity:  0.6516
+```
+
+Centered smoothing использует будущие вероятности внутри той же PSG-записи, поэтому этот вариант нужно описывать как offline retrospective analysis. Для сценария без будущей информации использовать causal smoothing.
+
+## Инженерные Метрики
+
+Benchmark финального ensemble:
+
+```text
+Sleep-only subset:        16067 эпох, 25 записей
+Full inference time:      0.205563 s
+Latency per epoch:        0.012794 ms
+Batch latency per record: 8.222519 ms
+Single-record latency:    67.764430 ms
+Peak Python allocation:   19.153 MB
+Model artifact size:      0.658 MB
+GPU required:             no
+```
+
+Отчет: [reports/performance_report.md](reports/performance_report.md)
+
+## Анализ Ошибок
+
+Для финального threshold `0.45`:
+
+```text
+TP: 2286
+FP: 4383
+FN: 1201
+TN: 8197
+```
+
+Основные наблюдения:
+
+- FP чаще связаны с десатурационно-похожими паттернами: mean SpO2 min 89.60 против 91.61 у TN;
+- FN чаще имеют менее выраженное падение SpO2: mean SpO2 min 91.63 против 88.80 у TP;
+- ошибки концентрируются на отдельных записях, что указывает на влияние индивидуальной физиологии и качества сигнала;
+- распределение ошибок отличается по стадиям сна.
+
+Отчет: [reports/error_analysis_report.md](reports/error_analysis_report.md)
+
+## Ключевые Артефакты
+
+```text
+reports/final_artifact_index.md
+reports/tables/final_master_results_table.csv
+reports/tables/final_practical_process_metrics.csv
+reports/performance_report.md
+reports/error_analysis_report.md
+reports/tables/inference_benchmark.csv
+reports/tables/error_analysis_by_record.csv
+reports/tables/error_analysis_by_sleep_stage.csv
+reports/models/final_temporal_ensemble_components.joblib
+```
+
+## Данные
+
+Используется PhysioNet UCDDB. Скрипт загрузки сохраняет только необходимые файлы:
 
 ```text
 RECORDS
@@ -60,248 +239,4 @@ ucddb*_respevt.txt
 ucddb*_stage.txt
 ```
 
-Large `*_lifecard.edf` files are intentionally not downloaded.
-
-Respiratory event annotations are expected in files such as:
-
-```text
-ucddb002_respevt.txt
-```
-
-The `data/raw/` directory is ignored by Git.
-
-## Installation
-
-Create and activate a virtual environment:
-
-```bash
-python -m venv .venv
-```
-
-On Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-## Download UCDDB Files
-
-From the project root:
-
-```bash
-python scripts/00_download_ucddb.py
-```
-
-The script downloads the selected UCDDB files from PhysioNet into `data/raw/`.
-Existing complete files are skipped after checking their remote size.
-
-## Run Data Audit
-
-From the project root:
-
-```bash
-python scripts/01_data_audit.py
-```
-
-The script scans `data/raw/`, tries to read each UCDDB EDF signal file, prints channel names and sampling frequencies, checks respiratory event annotation files, and saves the audit table to:
-
-```text
-reports/tables/ucddb_audit.csv
-```
-
-## Build Epoch Table
-
-From the project root:
-
-```bash
-python scripts/02_build_epochs.py
-```
-
-The script converts UCDDB records into 30-second epochs with binary labels:
-`normal` and `apnea_hypopnea`. The main output is:
-
-```text
-data/processed/epochs.csv
-```
-
-## Extract Features
-
-From the project root:
-
-```bash
-python scripts/03_extract_features.py
-```
-
-The script extracts ECG, Flow, ribcage, abdominal effort, SpO2, and combined effort features for each 30-second epoch. The main output is:
-
-```text
-data/processed/features_all.csv
-```
-
-## Build Model-Ready Features
-
-After extracting the base feature table, run:
-
-```bash
-python scripts/03_build_model_ready_features.py
-```
-
-The script keeps all original columns and adds sleep filtering, record-normalized, and neighboring-epoch context columns. The main output is:
-
-```text
-data/processed/features_model_ready.csv
-```
-
-## Build Advanced Features
-
-To add wider temporal context and interaction features, run:
-
-```bash
-python scripts/03_build_advanced_features.py
-```
-
-The script creates:
-
-```text
-data/processed/features_advanced.csv
-```
-
-## Validate Prepared Dataset
-
-Before training models, run:
-
-```bash
-python scripts/03_validate_dataset.py
-```
-
-The script checks table consistency, labels, epoch timing, missing values, feature ranges, and subject-level split readiness. The main report is:
-
-```text
-reports/validation_report.md
-```
-
-## Train Models
-
-After feature extraction and validation, run:
-
-```bash
-python scripts/04_train_models.py
-```
-
-The script trains subject-level cross-validation models and saves result tables to `reports/tables/`.
-
-## Train Improved Models
-
-After building `features_model_ready.csv`, run:
-
-```bash
-python scripts/04_train_improved_models.py
-```
-
-The script compares all-epoch and sleep-only regimes, base and enhanced features, and fusion strategies.
-
-## Train Advanced Models
-
-After building `features_advanced.csv`, run:
-
-```bash
-python scripts/04_train_advanced_models.py
-```
-
-The script tests advanced temporal/context features and six XGBoost configurations using subject-level cross-validation.
-
-## Train Reduced Segment-Level Models
-
-After building `data/processed/segment_features.csv`, run:
-
-```bash
-python scripts/04_train_segment_models_reduced.py
-```
-
-The script runs a lighter honest segment-level experiment with subject-level cross-validation and saves only aggregated results, thresholds, and a markdown report.
-
-## Train Temporal Ensemble
-
-After building `features_model_ready.csv`, run:
-
-```bash
-python scripts/04_train_temporal_ensemble.py
-```
-
-The script compares the best SpO2 baseline with a small Flow+SpO2 ensemble and label-free temporal probability smoothing under subject-level validation.
-
-## Train 1D-CNN Raw Signal Baseline
-
-After building `epochs.csv` and downloading raw `.rec` files, run:
-
-```bash
-python scripts/04_train_1dcnn_raw_signals.py
-```
-
-The script trains a controlled 1D-CNN baseline on raw Flow, SpO2, ribcage, and abdominal signals using subject-level cross-validation.
-
-## Train Improved 1D-CNN Raw Signal Model
-
-After building `epochs.csv` and downloading raw `.rec` files, run:
-
-```bash
-python scripts/04_train_1dcnn_improved.py
-```
-
-The script trains one controlled ResNet1D improvement experiment with longer offline context and temporal probability smoothing.
-
-## Analyze 1D-CNN Improvement Layer
-
-After running the raw-signal CNN and ResNet1D scripts, run:
-
-```bash
-python scripts/05_analyze_1dcnn_improvements.py
-```
-
-The script combines saved subject-level out-of-fold DL predictions with label-free causal smoothing and equal-weight probability averaging.
-
-## Interpret Final Models
-
-After building `features_model_ready.csv`, run:
-
-```bash
-python scripts/06_interpret_final_models.py
-```
-
-The script trains final component models on sleep-only data for feature importance analysis and saves interpretability tables, figures, and a markdown report.
-
-## Diagnose Baseline Results
-
-After training baseline models, run:
-
-```bash
-python scripts/04_diagnose_results.py
-```
-
-The script analyzes fold balance, sleep-stage label distribution, threshold sensitivity, and top baseline experiments without retraining models.
-
-## Analyze Final Results
-
-After training improved models, run:
-
-```bash
-python scripts/05_analyze_results.py
-```
-
-The script creates final thesis tables, threshold analysis, figures, and a markdown report from saved improved-model predictions.
-
-## Make Final Thesis Artifacts
-
-After the model reports have been generated, run:
-
-```bash
-python scripts/07_make_final_artifacts.py
-```
-
-The script collects the final compact tables, figures, and artifact index for writing the thesis.
+Большие `*_lifecard.edf` файлы не загружаются. Сырые данные находятся в `data/raw/` и не хранятся в Git.

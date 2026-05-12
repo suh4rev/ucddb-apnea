@@ -1,0 +1,4 @@
+# Optional dependencies for raw-signal CNN/ResNet1D experiments.
+-r requirements.txt
+
+torch

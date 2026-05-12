@@ -1,0 +1,10 @@
+# Optional dependencies for MLOps, experiment tracking, tuning, and benchmarking.
+-r requirements.txt
+
+dvc
+mlflow
+optuna
+wandb
+psutil
+joblib
+shap

@@ -1,0 +1,28 @@
+.git/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.pyo
+
+.env
+.ipynb_checkpoints/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Raw and generated medical/research artifacts should be mounted or rebuilt.
+data/raw/
+data/processed/
+reports/
+
+# Local thesis/document files are not needed inside the image.
+*.docx
+*.pdf
+
+# Future local MLOps outputs.
+mlruns/
+wandb/
+.dvc/cache/

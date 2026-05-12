@@ -11,6 +11,9 @@ env/
 # Local settings
 .env
 
+# Local thesis/report documents
+*.docx
+
 # Jupyter
 .ipynb_checkpoints/
 
@@ -30,3 +33,7 @@ reports/tables/advanced_cv_predictions.csv
 reports/tables/segment_cv_predictions.csv
 reports/segment_train_stdout.log
 reports/segment_train_stderr.log
+
+# Local experiment tracking outputs
+mlruns/
+wandb/

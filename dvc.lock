@@ -1,0 +1,646 @@
+schema: '2.0'
+stages:
+  download_raw:
+    cmd: python scripts/pipeline/00_download_ucddb.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: scripts/pipeline/00_download_ucddb.py
+      hash: md5
+      md5: 561ec125cb0009cca0dcd5f2022509a0
+      size: 8615
+    outs:
+    - path: data/raw
+      hash: md5
+      md5: dfed58974430a7bc2448cf9a57095ec7.dir
+      size: 806217266
+      nfiles: 78
+  audit_raw:
+    cmd: python scripts/pipeline/01_data_audit.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/raw
+      hash: md5
+      md5: dfed58974430a7bc2448cf9a57095ec7.dir
+      size: 806217266
+      nfiles: 78
+    - path: scripts/pipeline/01_data_audit.py
+      hash: md5
+      md5: 2d90057c13a5dd045668685c1a8e15fe
+      size: 7559
+    outs:
+    - path: reports/tables/ucddb_audit.csv
+      hash: md5
+      md5: bda055721cffcdb4d58c1a0cd41a6fb1
+      size: 8221
+  build_epochs:
+    cmd: python scripts/pipeline/02_build_epochs.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/raw
+      hash: md5
+      md5: dfed58974430a7bc2448cf9a57095ec7.dir
+      size: 806217266
+      nfiles: 78
+    - path: scripts/pipeline/02_build_epochs.py
+      hash: md5
+      md5: d6e32562400f05571623c00687e39c3f
+      size: 12944
+    outs:
+    - path: data/processed/epochs.csv
+      hash: md5
+      md5: 5e945df8f399f19d48024ff2de199eb6
+      size: 989560
+    - path: reports/tables/epochs_summary_by_record.csv
+      hash: md5
+      md5: 303bdfcc609b107f6bc198cb869fb141
+      size: 1732
+    - path: reports/tables/epochs_summary_overall.csv
+      hash: md5
+      md5: 367906714735fac1600e3ef8f6ac74c6
+      size: 138
+    - path: reports/tables/resp_event_parse_errors.csv
+      hash: md5
+      md5: 45cb65aadd3ff9cf2ba7deea5a7dfed7
+      size: 39
+  extract_features:
+    cmd: python scripts/pipeline/03_extract_features.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/epochs.csv
+      hash: md5
+      md5: 5e945df8f399f19d48024ff2de199eb6
+      size: 989560
+    - path: data/raw
+      hash: md5
+      md5: dfed58974430a7bc2448cf9a57095ec7.dir
+      size: 806217266
+      nfiles: 78
+    - path: scripts/pipeline/03_extract_features.py
+      hash: md5
+      md5: 2fc3fb1ccb98143839c490d821e67327
+      size: 18468
+    outs:
+    - path: data/processed/features_all.csv
+      hash: md5
+      md5: c0c5c1af8ca3446a851e986a428757f3
+      size: 20930811
+    - path: reports/tables/feature_extraction_summary.csv
+      hash: md5
+      md5: d30db3c2fce5930f5494e3c8a62cf154
+      size: 885
+  build_model_ready_features:
+    cmd: python scripts/pipeline/03_build_model_ready_features.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_all.csv
+      hash: md5
+      md5: c0c5c1af8ca3446a851e986a428757f3
+      size: 20930811
+    - path: scripts/pipeline/03_build_model_ready_features.py
+      hash: md5
+      md5: 1c9648f9cd16509e8f7b704767a1dc5f
+      size: 7375
+    outs:
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: reports/tables/model_ready_feature_summary.csv
+      hash: md5
+      md5: 54e8b521a9cf37ae3f671172bd516ea4
+      size: 238
+  validate_dataset:
+    cmd: python scripts/pipeline/03_validate_dataset.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/epochs.csv
+      hash: md5
+      md5: 5e945df8f399f19d48024ff2de199eb6
+      size: 989560
+    - path: data/processed/features_all.csv
+      hash: md5
+      md5: c0c5c1af8ca3446a851e986a428757f3
+      size: 20930811
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: scripts/pipeline/03_validate_dataset.py
+      hash: md5
+      md5: 53bf7f1e89ce93f05c7d82cc4e6c1a89
+      size: 25133
+    outs:
+    - path: reports/tables/validation_checks.csv
+      hash: md5
+      md5: fffb8a5c0837143b6f74c8f288b9ee3e
+      size: 2678
+    - path: reports/tables/validation_feature_missingness.csv
+      hash: md5
+      md5: f7184187848ed553034233c826ce2901
+      size: 1952
+    - path: reports/tables/validation_feature_ranges.csv
+      hash: md5
+      md5: fb5759db0cd1210c417bcda0b694a5ea
+      size: 1390
+    - path: reports/tables/validation_label_distribution_by_record.csv
+      hash: md5
+      md5: 67e436245d8e56d9b10ef6e88193f0b5
+      size: 1383
+    - path: reports/validation_report.md
+      hash: md5
+      md5: 9a572b5783d74d513033b2a66f1c1fa0
+      size: 966
+  train_improved_models:
+    cmd: python scripts/pipeline/04_train_improved_models.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: scripts/mlops/tracking.py
+      hash: md5
+      md5: 28b1c16927193a85ad847c8f2dfb4fc8
+      size: 5158
+    - path: scripts/pipeline/04_train_improved_models.py
+      hash: md5
+      md5: ba5b04e22450e52756b107cb1d281cd4
+      size: 25098
+    outs:
+    - path: reports/tables/improved_best_results.csv
+      hash: md5
+      md5: ed18cc3a460a7a03b270086be5c306cc
+      size: 3984
+    - path: reports/tables/improved_cv_predictions.csv
+      hash: md5
+      md5: e55215fc02ac9d67d812a562d513cdde
+      size: 35084002
+    - path: reports/tables/improved_model_confusion_matrices.csv
+      hash: md5
+      md5: 4714ee809ce00adbde8bd9bbdd74e3fa
+      size: 1533
+    - path: reports/tables/improved_model_results_by_fold.csv
+      hash: md5
+      md5: 14c326f77f1d6b743e15a4bd793dff2f
+      size: 25785
+    - path: reports/tables/improved_model_results_summary.csv
+      hash: md5
+      md5: 3d064356c3dcc19e93e5ba48b0c0edac
+      size: 8524
+  analyze_improved_results:
+    cmd: python scripts/analysis/05_analyze_results.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: reports/tables/improved_cv_predictions.csv
+      hash: md5
+      md5: e55215fc02ac9d67d812a562d513cdde
+      size: 35084002
+    - path: reports/tables/improved_model_confusion_matrices.csv
+      hash: md5
+      md5: 4714ee809ce00adbde8bd9bbdd74e3fa
+      size: 1533
+    - path: reports/tables/improved_model_results_by_fold.csv
+      hash: md5
+      md5: 14c326f77f1d6b743e15a4bd793dff2f
+      size: 25785
+    - path: reports/tables/improved_model_results_summary.csv
+      hash: md5
+      md5: 3d064356c3dcc19e93e5ba48b0c0edac
+      size: 8524
+    - path: scripts/analysis/05_analyze_results.py
+      hash: md5
+      md5: 9bef2d88cef054b2df152eedcab1d508
+      size: 19764
+    outs:
+    - path: reports/figures/confusion_matrix_best.png
+      hash: md5
+      md5: 704289da0c2f2a392c317e4de8c277fc
+      size: 46054
+    - path: reports/figures/f1_sensitivity_specificity_best.png
+      hash: md5
+      md5: 5190c54bc8e7ce4b08a48de4b23be756
+      size: 90227
+    - path: reports/figures/fusion_comparison_auc.png
+      hash: md5
+      md5: fecc9a432ebb0027ad3f368c10a16d12
+      size: 82188
+    - path: reports/figures/modality_comparison_auc.png
+      hash: md5
+      md5: d566997cf9c5e380b77d817d075f26b2
+      size: 89803
+    - path: reports/figures/roc_curves_final.png
+      hash: md5
+      md5: b844a4002ccdcbbbb6ff2a5becb9c816
+      size: 198265
+    - path: reports/final_analysis_report.md
+      hash: md5
+      md5: e58ac019e19fb9c12c8c476874b07faf
+      size: 2341
+    - path: reports/tables/best_thresholds_improved.csv
+      hash: md5
+      md5: 84086831a7821fb8a9a271b081481088
+      size: 14596
+    - path: reports/tables/final_results_table.csv
+      hash: md5
+      md5: 75f95c798804c8b86ce7992ceda35f1a
+      size: 1646
+    - path: reports/tables/final_results_table.md
+      hash: md5
+      md5: dba190227c1e593b92cf1eeeb974b90c
+      size: 1181
+    - path: reports/tables/threshold_sweep_improved.csv
+      hash: md5
+      md5: 01410730ff0dede57af2796d5775cfba
+      size: 78438
+  train_temporal_ensemble:
+    cmd: python scripts/pipeline/04_train_temporal_ensemble.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: reports/tables/improved_cv_predictions.csv
+      hash: md5
+      md5: e55215fc02ac9d67d812a562d513cdde
+      size: 35084002
+    - path: scripts/mlops/tracking.py
+      hash: md5
+      md5: 28b1c16927193a85ad847c8f2dfb4fc8
+      size: 5158
+    - path: scripts/pipeline/04_train_temporal_ensemble.py
+      hash: md5
+      md5: 4b345f66c1cbffbf6cb9cbbb45bf4b07
+      size: 33154
+    outs:
+    - path: reports/tables/temporal_ensemble_best_results.csv
+      hash: md5
+      md5: 132a1a23ef0dbbc2b7eda0c0d4ffa0e4
+      size: 3579
+    - path: reports/tables/temporal_ensemble_best_thresholds.csv
+      hash: md5
+      md5: f1cc497485d1148e74da7e59619d65ca
+      size: 6186
+    - path: reports/tables/temporal_ensemble_cv_predictions.csv
+      hash: md5
+      md5: b6d9d2cdb2d12458e8bd32e0b7a3a4b3
+      size: 14822035
+    - path: reports/tables/temporal_ensemble_results_by_fold.csv
+      hash: md5
+      md5: 76cf75a0da2c3b3ba34701d011347dee
+      size: 10826
+    - path: reports/tables/temporal_ensemble_results_summary.csv
+      hash: md5
+      md5: 132a1a23ef0dbbc2b7eda0c0d4ffa0e4
+      size: 3579
+    - path: reports/temporal_ensemble_report.md
+      hash: md5
+      md5: 6e2cce85829881055f66750506157883
+      size: 3383
+  audit_pipeline:
+    cmd: python scripts/pipeline/06_audit_pipeline.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/epochs.csv
+      hash: md5
+      md5: 5e945df8f399f19d48024ff2de199eb6
+      size: 989560
+    - path: data/processed/features_advanced.csv
+      hash: md5
+      md5: 8c3d6ed27f0913c0d86e24a657b4553b
+      size: 92880475
+    - path: data/processed/features_all.csv
+      hash: md5
+      md5: c0c5c1af8ca3446a851e986a428757f3
+      size: 20930811
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: reports/tables/advanced_best_results.csv
+      hash: md5
+      md5: 9e7015920719adf538791ea88340e2bb
+      size: 10225
+    - path: reports/tables/improved_model_results_summary.csv
+      hash: md5
+      md5: 3d064356c3dcc19e93e5ba48b0c0edac
+      size: 8524
+    - path: scripts/experiments/04_train_advanced_models.py
+      hash: md5
+      md5: 38d335b96ef8dad2f9ae909b01a73edf
+      size: 28466
+    - path: scripts/experiments/04_train_models.py
+      hash: md5
+      md5: bf659a708bc6b123c9471ff26dd3f905
+      size: 21989
+    - path: scripts/pipeline/04_train_improved_models.py
+      hash: md5
+      md5: ba5b04e22450e52756b107cb1d281cd4
+      size: 25098
+    - path: scripts/pipeline/06_audit_pipeline.py
+      hash: md5
+      md5: 20e3437c3786998a06ecb8b96ec2752c
+      size: 27867
+    outs:
+    - path: reports/pipeline_audit_report.md
+      hash: md5
+      md5: ed17a20019199e1b70962f7e9627ebf8
+      size: 2956
+    - path: reports/tables/pipeline_audit_checks.csv
+      hash: md5
+      md5: 8927dda8c474ab9a1a16553b318db431
+      size: 2305
+    - path: reports/tables/pipeline_audit_feature_missingness.csv
+      hash: md5
+      md5: dfa7a02e5b3c47c385d71c51debce0ff
+      size: 23693
+  interpret_final_models:
+    cmd: python scripts/pipeline/06_interpret_final_models.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: scripts/pipeline/06_interpret_final_models.py
+      hash: md5
+      md5: 0999a6134ed873160fd68dfcf116c26e
+      size: 14032
+    outs:
+    - path: reports/figures/final_feature_importance_flow_spo2_hgb.png
+      hash: md5
+      md5: 7fcd554771cbb11efda3ec720930e3dc
+      size: 128298
+    - path: reports/figures/final_feature_importance_spo2_xgboost.png
+      hash: md5
+      md5: 38bcdf1f0991598b0b7a85c2931e9fbc
+      size: 123543
+    - path: reports/interpretability_report.md
+      hash: md5
+      md5: 23c5e947e7442b9372067385d4dd3fb3
+      size: 2487
+    - path: reports/tables/final_feature_importance_flow_spo2_hgb.csv
+      hash: md5
+      md5: 22ed64808cb1b7a447efb97fb47fe9b6
+      size: 4178
+    - path: reports/tables/final_feature_importance_spo2_xgboost.csv
+      hash: md5
+      md5: 6d1508cca15876d2a54d8b338d2856fb
+      size: 2316
+  make_final_artifacts:
+    cmd: python scripts/pipeline/07_make_final_artifacts.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: reports/error_analysis_report.md
+      hash: md5
+      md5: f91d72f277c3adc453f60b780f1dc7e6
+      size: 2679
+    - path: reports/performance_report.md
+      hash: md5
+      md5: de45837cb60086d663021cd13278cad3
+      size: 1465
+    - path: reports/pipeline_audit_report.md
+      hash: md5
+      md5: ed17a20019199e1b70962f7e9627ebf8
+      size: 2956
+    - path: reports/segment_reduced_analysis_report.md
+      hash: md5
+      md5: fee3fa25108639e618f87c17c73407d3
+      size: 4528
+    - path: reports/tables/advanced_best_results.csv
+      hash: md5
+      md5: 9e7015920719adf538791ea88340e2bb
+      size: 10225
+    - path: reports/tables/cnn_dl_improvement_results_summary.csv
+      hash: md5
+      md5: 34dfc436fde56c8ad9fb5a03ac65c7e5
+      size: 2283
+    - path: reports/tables/cnn_improved_results_summary.csv
+      hash: md5
+      md5: ed5b9a1c856d31dc0fd5bb008595509c
+      size: 2529
+    - path: reports/tables/cnn_results_summary.csv
+      hash: md5
+      md5: af8bd22d9813dffdb9fa7a486c4f3e12
+      size: 1111
+    - path: reports/tables/epochs_summary_overall.csv
+      hash: md5
+      md5: 367906714735fac1600e3ef8f6ac74c6
+      size: 138
+    - path: reports/tables/error_analysis_by_record.csv
+      hash: md5
+      md5: c9fc96741827744a27b72a00a97d195b
+      size: 2731
+    - path: reports/tables/error_analysis_by_sleep_stage.csv
+      hash: md5
+      md5: 58c28f8b97b4a7bc9ac2da4cccf93237
+      size: 822
+    - path: reports/tables/final_feature_importance_flow_spo2_hgb.csv
+      hash: md5
+      md5: 22ed64808cb1b7a447efb97fb47fe9b6
+      size: 4178
+    - path: reports/tables/final_feature_importance_spo2_xgboost.csv
+      hash: md5
+      md5: 6d1508cca15876d2a54d8b338d2856fb
+      size: 2316
+    - path: reports/tables/final_results_table.csv
+      hash: md5
+      md5: 75f95c798804c8b86ce7992ceda35f1a
+      size: 1646
+    - path: reports/tables/improved_best_results.csv
+      hash: md5
+      md5: ed18cc3a460a7a03b270086be5c306cc
+      size: 3984
+    - path: reports/tables/inference_benchmark.csv
+      hash: md5
+      md5: fdc1170bfd6d1a84ab5ff07c8d62c664
+      size: 566
+    - path: reports/tables/model_ready_feature_summary.csv
+      hash: md5
+      md5: 54e8b521a9cf37ae3f671172bd516ea4
+      size: 238
+    - path: reports/tables/segment_reduced_best_results.csv
+      hash: md5
+      md5: 612dfe54ad3bfdadccb4fd665c2dae57
+      size: 9244
+    - path: reports/tables/temporal_ensemble_best_thresholds.csv
+      hash: md5
+      md5: f1cc497485d1148e74da7e59619d65ca
+      size: 6186
+    - path: reports/tables/temporal_ensemble_results_summary.csv
+      hash: md5
+      md5: 132a1a23ef0dbbc2b7eda0c0d4ffa0e4
+      size: 3579
+    - path: reports/temporal_ensemble_report.md
+      hash: md5
+      md5: 6e2cce85829881055f66750506157883
+      size: 3383
+    - path: scripts/pipeline/07_make_final_artifacts.py
+      hash: md5
+      md5: 05b25cb75a2665c0350cbbfdc089f44f
+      size: 34196
+    outs:
+    - path: reports/figures/final_confusion_matrix_temporal_best.png
+      hash: md5
+      md5: bfd938c8c47252c3b7ade10a296603fd
+      size: 55353
+    - path: reports/figures/final_model_comparison_auc.png
+      hash: md5
+      md5: 254be766f6be25f09b9f9f2b56a0f969
+      size: 87172
+    - path: reports/figures/final_roc_curves_with_temporal.png
+      hash: md5
+      md5: 28c586d12df92f92a97bc0705d3b6b51
+      size: 92064
+    - path: reports/figures/final_threshold_tradeoff.png
+      hash: md5
+      md5: 50294c512f274f5c7f517b1b8c93d326
+      size: 37162
+    - path: reports/final_artifact_index.md
+      hash: md5
+      md5: 419d5aad93242819ba0d2cf893f3a900
+      size: 3182
+    - path: reports/tables/final_dataset_summary.csv
+      hash: md5
+      md5: ccdb91e8e40299474dd39a8217eb8ed1
+      size: 182
+    - path: reports/tables/final_master_results_table.csv
+      hash: md5
+      md5: 25466bf16bb98e0614a9582a6b14d3f4
+      size: 2530
+    - path: reports/tables/final_master_results_table.md
+      hash: md5
+      md5: 3327809b45bfd25df3620a122b08bf5b
+      size: 2262
+    - path: reports/tables/final_ml_vs_dl_comparison.csv
+      hash: md5
+      md5: d6e37a08c6ec32be86c928cbdff236d3
+      size: 1008
+    - path: reports/tables/final_ml_vs_dl_comparison.md
+      hash: md5
+      md5: 1a04ded6c181fa7e74ccc8245bbb1fbc
+      size: 1135
+    - path: reports/tables/final_negative_experiments_summary.csv
+      hash: md5
+      md5: da825062b137acbc962ed7c368b1fe4d
+      size: 488
+    - path: reports/tables/final_practical_process_metrics.csv
+      hash: md5
+      md5: 2e9c5e327aff077a833b311c636faf21
+      size: 300
+  benchmark_inference:
+    cmd: python scripts/mlops/benchmark_inference.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: scripts/mlops/benchmark_inference.py
+      hash: md5
+      md5: 7a669ddfee49bf40e50b06e73dbb5766
+      size: 9075
+    - path: scripts/pipeline/04_train_temporal_ensemble.py
+      hash: md5
+      md5: 4b345f66c1cbffbf6cb9cbbb45bf4b07
+      size: 33154
+    outs:
+    - path: reports/models/final_temporal_ensemble_components.joblib
+      hash: md5
+      md5: 1da199cc3244374b89b050567a33f021
+      size: 689797
+    - path: reports/performance_report.md
+      hash: md5
+      md5: de45837cb60086d663021cd13278cad3
+      size: 1465
+    - path: reports/tables/inference_benchmark.csv
+      hash: md5
+      md5: fdc1170bfd6d1a84ab5ff07c8d62c664
+      size: 566
+  analyze_errors:
+    cmd: python scripts/analysis/06_error_analysis.py
+    deps:
+    - path: config.py
+      hash: md5
+      md5: b05f1a07caa3f72c104d10a368b35616
+      size: 294
+    - path: data/processed/features_model_ready.csv
+      hash: md5
+      md5: f956b21451d621c8eaabf0be712d1a59
+      size: 55898142
+    - path: reports/tables/temporal_ensemble_best_thresholds.csv
+      hash: md5
+      md5: f1cc497485d1148e74da7e59619d65ca
+      size: 6186
+    - path: reports/tables/temporal_ensemble_cv_predictions.csv
+      hash: md5
+      md5: b6d9d2cdb2d12458e8bd32e0b7a3a4b3
+      size: 14822035
+    - path: scripts/analysis/06_error_analysis.py
+      hash: md5
+      md5: c7cd0690d954ce8b1b06abeff720b7e2
+      size: 12897
+    outs:
+    - path: reports/error_analysis_report.md
+      hash: md5
+      md5: f91d72f277c3adc453f60b780f1dc7e6
+      size: 2679
+    - path: reports/tables/error_analysis_by_record.csv
+      hash: md5
+      md5: c9fc96741827744a27b72a00a97d195b
+      size: 2731
+    - path: reports/tables/error_analysis_by_sleep_stage.csv
+      hash: md5
+      md5: 58c28f8b97b4a7bc9ac2da4cccf93237
+      size: 822
+    - path: reports/tables/error_analysis_feature_summary.csv
+      hash: md5
+      md5: 1362f73836b758aa9577e5f088b51436
+      size: 2269
+    - path: reports/tables/error_analysis_top_fn.csv
+      hash: md5
+      md5: b2ba2f3c9d0b6a3589c9041a230cdca4
+      size: 7936
+    - path: reports/tables/error_analysis_top_fp.csv
+      hash: md5
+      md5: 4304d2924f64caf0bd22ea601ebc9447
+      size: 8233

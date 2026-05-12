@@ -35,12 +35,16 @@ Advanced and segment-level checks:
 - `reports/tables/final_master_results_table.csv` and `reports/tables/final_master_results_table.md`: compact final results table for the thesis.
 - `reports/tables/final_ml_vs_dl_comparison.csv` and `reports/tables/final_ml_vs_dl_comparison.md`: compact comparison of ML and DL experiments.
 - `reports/tables/final_practical_process_metrics.csv`: process metrics for temporal ensemble threshold 0.45.
+- `reports/tables/inference_benchmark.csv`: inference latency, memory, and artifact-size benchmark.
+- `reports/tables/error_analysis_by_record.csv` and `reports/tables/error_analysis_by_sleep_stage.csv`: FP/FN breakdown by record and sleep stage.
 - `reports/tables/final_negative_experiments_summary.csv`: experiments that did not improve the final baseline.
 
 ## Source Reports
 
 - `reports/pipeline_audit_report.md`: pipeline audit and leakage checks.
 - `reports/temporal_ensemble_report.md`: temporal ensemble analysis.
+- `reports/performance_report.md`: engineering performance and deployment notes.
+- `reports/error_analysis_report.md`: record-level FP/FN error analysis.
 - `reports/segment_reduced_analysis_report.md`: reduced segment-level analysis.
 
 ## Thesis Usage Note

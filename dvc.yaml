@@ -1,0 +1,346 @@
+stages:
+  download_raw:
+    cmd: python scripts/pipeline/00_download_ucddb.py
+    deps:
+      - config.py
+      - scripts/pipeline/00_download_ucddb.py
+    outs:
+      - data/raw:
+          cache: false
+          persist: true
+
+  audit_raw:
+    cmd: python scripts/pipeline/01_data_audit.py
+    deps:
+      - config.py
+      - scripts/pipeline/01_data_audit.py
+      - data/raw
+    outs:
+      - reports/tables/ucddb_audit.csv:
+          cache: false
+          persist: true
+
+  build_epochs:
+    cmd: python scripts/pipeline/02_build_epochs.py
+    deps:
+      - config.py
+      - scripts/pipeline/02_build_epochs.py
+      - data/raw
+    outs:
+      - data/processed/epochs.csv:
+          cache: false
+          persist: true
+      - reports/tables/epochs_summary_by_record.csv:
+          cache: false
+          persist: true
+      - reports/tables/epochs_summary_overall.csv:
+          cache: false
+          persist: true
+      - reports/tables/resp_event_parse_errors.csv:
+          cache: false
+          persist: true
+
+  extract_features:
+    cmd: python scripts/pipeline/03_extract_features.py
+    deps:
+      - config.py
+      - scripts/pipeline/03_extract_features.py
+      - data/raw
+      - data/processed/epochs.csv
+    outs:
+      - data/processed/features_all.csv:
+          cache: false
+          persist: true
+      - reports/tables/feature_extraction_summary.csv:
+          cache: false
+          persist: true
+
+  build_model_ready_features:
+    cmd: python scripts/pipeline/03_build_model_ready_features.py
+    deps:
+      - config.py
+      - scripts/pipeline/03_build_model_ready_features.py
+      - data/processed/features_all.csv
+    outs:
+      - data/processed/features_model_ready.csv:
+          cache: false
+          persist: true
+      - reports/tables/model_ready_feature_summary.csv:
+          cache: false
+          persist: true
+
+  validate_dataset:
+    cmd: python scripts/pipeline/03_validate_dataset.py
+    deps:
+      - config.py
+      - scripts/pipeline/03_validate_dataset.py
+      - data/processed/epochs.csv
+      - data/processed/features_all.csv
+      - data/processed/features_model_ready.csv
+    outs:
+      - reports/validation_report.md:
+          cache: false
+          persist: true
+      - reports/tables/validation_checks.csv:
+          cache: false
+          persist: true
+      - reports/tables/validation_feature_missingness.csv:
+          cache: false
+          persist: true
+      - reports/tables/validation_feature_ranges.csv:
+          cache: false
+          persist: true
+      - reports/tables/validation_label_distribution_by_record.csv:
+          cache: false
+          persist: true
+
+  train_improved_models:
+    cmd: python scripts/pipeline/04_train_improved_models.py
+    deps:
+      - config.py
+      - scripts/mlops/tracking.py
+      - scripts/pipeline/04_train_improved_models.py
+      - data/processed/features_model_ready.csv
+    outs:
+      - reports/tables/improved_model_results_by_fold.csv:
+          cache: false
+          persist: true
+      - reports/tables/improved_model_results_summary.csv:
+          cache: false
+          persist: true
+      - reports/tables/improved_model_confusion_matrices.csv:
+          cache: false
+          persist: true
+      - reports/tables/improved_cv_predictions.csv:
+          cache: false
+          persist: true
+      - reports/tables/improved_best_results.csv:
+          cache: false
+          persist: true
+
+  analyze_improved_results:
+    cmd: python scripts/analysis/05_analyze_results.py
+    deps:
+      - config.py
+      - scripts/analysis/05_analyze_results.py
+      - reports/tables/improved_model_results_summary.csv
+      - reports/tables/improved_model_results_by_fold.csv
+      - reports/tables/improved_model_confusion_matrices.csv
+      - reports/tables/improved_cv_predictions.csv
+    outs:
+      - reports/final_analysis_report.md:
+          cache: false
+          persist: true
+      - reports/tables/final_results_table.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_results_table.md:
+          cache: false
+          persist: true
+      - reports/tables/threshold_sweep_improved.csv:
+          cache: false
+          persist: true
+      - reports/tables/best_thresholds_improved.csv:
+          cache: false
+          persist: true
+      - reports/figures/roc_curves_final.png:
+          cache: false
+          persist: true
+      - reports/figures/confusion_matrix_best.png:
+          cache: false
+          persist: true
+      - reports/figures/modality_comparison_auc.png:
+          cache: false
+          persist: true
+      - reports/figures/fusion_comparison_auc.png:
+          cache: false
+          persist: true
+      - reports/figures/f1_sensitivity_specificity_best.png:
+          cache: false
+          persist: true
+
+  train_temporal_ensemble:
+    cmd: python scripts/pipeline/04_train_temporal_ensemble.py
+    deps:
+      - config.py
+      - scripts/mlops/tracking.py
+      - scripts/pipeline/04_train_temporal_ensemble.py
+      - data/processed/features_model_ready.csv
+      - reports/tables/improved_cv_predictions.csv
+    outs:
+      - reports/temporal_ensemble_report.md:
+          cache: false
+          persist: true
+      - reports/tables/temporal_ensemble_results_by_fold.csv:
+          cache: false
+          persist: true
+      - reports/tables/temporal_ensemble_results_summary.csv:
+          cache: false
+          persist: true
+      - reports/tables/temporal_ensemble_best_results.csv:
+          cache: false
+          persist: true
+      - reports/tables/temporal_ensemble_best_thresholds.csv:
+          cache: false
+          persist: true
+      - reports/tables/temporal_ensemble_cv_predictions.csv:
+          cache: false
+          persist: true
+
+  benchmark_inference:
+    cmd: python scripts/mlops/benchmark_inference.py
+    deps:
+      - config.py
+      - scripts/mlops/benchmark_inference.py
+      - scripts/pipeline/04_train_temporal_ensemble.py
+      - data/processed/features_model_ready.csv
+    outs:
+      - reports/performance_report.md:
+          cache: false
+          persist: true
+      - reports/tables/inference_benchmark.csv:
+          cache: false
+          persist: true
+      - reports/models/final_temporal_ensemble_components.joblib:
+          cache: false
+          persist: true
+
+  analyze_errors:
+    cmd: python scripts/analysis/06_error_analysis.py
+    deps:
+      - config.py
+      - scripts/analysis/06_error_analysis.py
+      - data/processed/features_model_ready.csv
+      - reports/tables/temporal_ensemble_cv_predictions.csv
+      - reports/tables/temporal_ensemble_best_thresholds.csv
+    outs:
+      - reports/error_analysis_report.md:
+          cache: false
+          persist: true
+      - reports/tables/error_analysis_by_record.csv:
+          cache: false
+          persist: true
+      - reports/tables/error_analysis_by_sleep_stage.csv:
+          cache: false
+          persist: true
+      - reports/tables/error_analysis_feature_summary.csv:
+          cache: false
+          persist: true
+      - reports/tables/error_analysis_top_fp.csv:
+          cache: false
+          persist: true
+      - reports/tables/error_analysis_top_fn.csv:
+          cache: false
+          persist: true
+
+  audit_pipeline:
+    cmd: python scripts/pipeline/06_audit_pipeline.py
+    deps:
+      - config.py
+      - scripts/pipeline/06_audit_pipeline.py
+      - scripts/pipeline/04_train_improved_models.py
+      - scripts/experiments/04_train_models.py
+      - scripts/experiments/04_train_advanced_models.py
+      - data/processed/epochs.csv
+      - data/processed/features_all.csv
+      - data/processed/features_model_ready.csv
+      - data/processed/features_advanced.csv
+      - reports/tables/improved_model_results_summary.csv
+      - reports/tables/advanced_best_results.csv
+    outs:
+      - reports/pipeline_audit_report.md:
+          cache: false
+          persist: true
+      - reports/tables/pipeline_audit_checks.csv:
+          cache: false
+          persist: true
+      - reports/tables/pipeline_audit_feature_missingness.csv:
+          cache: false
+          persist: true
+
+  interpret_final_models:
+    cmd: python scripts/pipeline/06_interpret_final_models.py
+    deps:
+      - config.py
+      - scripts/pipeline/06_interpret_final_models.py
+      - data/processed/features_model_ready.csv
+    outs:
+      - reports/interpretability_report.md:
+          cache: false
+          persist: true
+      - reports/tables/final_feature_importance_spo2_xgboost.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_feature_importance_flow_spo2_hgb.csv:
+          cache: false
+          persist: true
+      - reports/figures/final_feature_importance_spo2_xgboost.png:
+          cache: false
+          persist: true
+      - reports/figures/final_feature_importance_flow_spo2_hgb.png:
+          cache: false
+          persist: true
+
+  make_final_artifacts:
+    cmd: python scripts/pipeline/07_make_final_artifacts.py
+    deps:
+      - config.py
+      - scripts/pipeline/07_make_final_artifacts.py
+      - reports/tables/epochs_summary_overall.csv
+      - reports/tables/model_ready_feature_summary.csv
+      - reports/tables/final_results_table.csv
+      - reports/tables/improved_best_results.csv
+      - reports/tables/temporal_ensemble_results_summary.csv
+      - reports/tables/temporal_ensemble_best_thresholds.csv
+      - reports/tables/advanced_best_results.csv
+      - reports/tables/segment_reduced_best_results.csv
+      - reports/tables/cnn_results_summary.csv
+      - reports/tables/cnn_improved_results_summary.csv
+      - reports/tables/cnn_dl_improvement_results_summary.csv
+      - reports/tables/final_feature_importance_spo2_xgboost.csv
+      - reports/tables/final_feature_importance_flow_spo2_hgb.csv
+      - reports/temporal_ensemble_report.md
+      - reports/segment_reduced_analysis_report.md
+      - reports/pipeline_audit_report.md
+      - reports/performance_report.md
+      - reports/error_analysis_report.md
+      - reports/tables/inference_benchmark.csv
+      - reports/tables/error_analysis_by_record.csv
+      - reports/tables/error_analysis_by_sleep_stage.csv
+    outs:
+      - reports/final_artifact_index.md:
+          cache: false
+          persist: true
+      - reports/tables/final_dataset_summary.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_master_results_table.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_master_results_table.md:
+          cache: false
+          persist: true
+      - reports/tables/final_practical_process_metrics.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_negative_experiments_summary.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_ml_vs_dl_comparison.csv:
+          cache: false
+          persist: true
+      - reports/tables/final_ml_vs_dl_comparison.md:
+          cache: false
+          persist: true
+      - reports/figures/final_roc_curves_with_temporal.png:
+          cache: false
+          persist: true
+      - reports/figures/final_confusion_matrix_temporal_best.png:
+          cache: false
+          persist: true
+      - reports/figures/final_model_comparison_auc.png:
+          cache: false
+          persist: true
+      - reports/figures/final_threshold_tradeoff.png:
+          cache: false
+          persist: true
